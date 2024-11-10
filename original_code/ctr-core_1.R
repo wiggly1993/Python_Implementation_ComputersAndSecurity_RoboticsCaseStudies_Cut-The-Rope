@@ -18,7 +18,7 @@ library(HyRiM)
 # what follows from here onwards is the same for all experiments
 ################################################################################
 
-# This finds the startins nodes that have no edges pointing to them
+# This finds the starting nodes that have no edges pointing to them
 # stores these nodes in the variable "roots"
 roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
 # the number of starting nodes
@@ -50,11 +50,22 @@ if (k > 1) {
 }
 
 ################################################################################
-# condense all attack targets into a single target node
+# create a list of target nodes
 target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
+
+# create a list of 0s with the length of the number of nodes in the graph
+# [0, 0, 0, ...]
 vertexNo <- matrix(0, nrow = 1, ncol = gorder(attack_graph))
+
+# create a dataframe that adds the labels for the nodes for each columns
+#  A  B  C
+# [0, 0, 0]
 colnames(vertexNo) <- get.vertex.attribute(attack_graph, "name")
+
+# all nodes (10) - target nodes (3) + 1 = 8
 jointVertex <- gorder(attack_graph) - length(target_list) + 1
+
+
 vertexNo[,target_list] <- jointVertex
 vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
 attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)

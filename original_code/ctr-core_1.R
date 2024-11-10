@@ -23,13 +23,24 @@ library(HyRiM)
 roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
 # the number of starting nodes
 k <- length(roots)
+
+
 if (k > 1) {
   # add a virtual starting point
   entry <- "attacker_entry_node"  # the virtual node
+  # add the virtual node to the graph
   attack_graph <- add_vertices(attack_graph, 1, name = entry)
+
+  # create a list that repeats entry node k*2 times 
+  # [entry, entry, entry] (for k=3)
   edgelist <- rep(entry, times=2*k)
+  # add roots to the list but in the odd positions
+  # [entry, root1, entry, root2, entry, root3]
   edgelist[2*(1:k)] <- roots
+
+  # add edges from entry nade to all starting nodes
   attack_graph <- add_edges(attack_graph, edgelist)
+  # give all the new edges from virtual to roots a weight of 1
   attack_graph <- set_edge_attr(attack_graph,
                                 name = "weight",
                                 index = get.edge.ids(attack_graph, edgelist),

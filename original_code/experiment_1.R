@@ -24,14 +24,18 @@ source(file = "attack_graph_MARA.R")
 
 attackRateList <- 2  # parameter lambda
 
-# defines a new function called poisson
+# defines a new poisson function that gives you as many values 
+# as the length of the route
+# probabilities = [0.15, 0.30, 0.30, 0.20, 0.05] is the chance that attacker moves
+# X steps in the route
 randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   # the value of "attackRate" comes from an external loop
   pdfD <- dpois(x=0:(length(route)-1), lambda = attackRate)
   pdfD <- pdfD / sum(pdfD)
   return(pdfD)
 }
-
+# imports the entire file and since this is done in R it will probably execute some
+# code. Import R literally executes every line as long as it can be executed.
 source("ctr-core_1.R")
 
 sink()

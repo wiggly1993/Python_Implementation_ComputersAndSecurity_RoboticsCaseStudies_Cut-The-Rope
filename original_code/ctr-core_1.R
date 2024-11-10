@@ -17,9 +17,11 @@ library(HyRiM)
 
 # what follows from here onwards is the same for all experiments
 ################################################################################
-# preparation of the attack graph: 
-# add virtual entry node if there are multiple possible entry points
+
+# This finds the startins nodes that have no edges pointing to them
+# stores these nodes in the variable "roots"
 roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
+# the number of starting nodes
 k <- length(roots)
 if (k > 1) {
   # add a virtual starting point

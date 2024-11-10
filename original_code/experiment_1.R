@@ -38,5 +38,7 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
 # code. Import R literally executes every line as long as it can be executed.
 source("ctr-core_1.R")
 
+# This STOPS the redirection into the log file
 sink()
+# This displays the log file in the console
 file.show(outputLogFile)

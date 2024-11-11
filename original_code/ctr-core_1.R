@@ -158,38 +158,80 @@ advList <- setdiff(V, c(entry, target_list))
 # This creates a list where each adversary location is given equal probability (1/n). 
 # This represents the defender's uncertainty about where the attacker might be
 Theta <- rep(1/n, times = length(advList))
+
+# Create dictionary mapping locations to their probabilities
+# Before: advList = [2,3,4,5,6,7]
+#         Theta = [1/5, 1/5, 1/5, 1/5, 1/5, 1/5]
+# After: Theta = {2: 0.2, 3: 0.2, 4: 0.2, 5: 0.2, 6: 0.2, 7: 0.2}
 names(Theta) <- advList
 
-# avoid the loops being skipped if the experiments do not define attack or defense rates to try
+# experiment_1.R does only define attackRateList = 2 but no value for defenserate
+# Important note: in this specific code we have here, even if defenderate is defined, 
+# it will not have any impact on the code we have here.
+# I assume that is bec we are in the "First movement" framework where the defender
+# checks are at fixed time intervals
 if (!exists("defenseRateList")) { defenseRateList <- 0 }
 if (!exists("attackRateList")) { attackRateList <- 0 }
 
 for(defenseRate in defenseRateList){
   for(attackRate in attackRateList) {
+    # print out the current attack and defense rates
     cat("\n++++++++++++++++++++++++++++++++\nattack rate = ", attackRate, ", defense rate = ", defenseRate, "\n")
-    payoffsList <- NULL  # to collect all payoffs for the multi-criteria game
     
-    # this loop will only take a single iteration (we have only one target in the current version; multiple targets are "theoretically possible", and up to future work/studies)    
-    for(target in target_list) {  # each target is its own goal for the defender to optimize against all adversary avatars
+    # creates an empty None object that will store the payoff matrices later.
+    payoffsList <- NULL  
+    
+    # in theory we could loop for all target nodes, but we have only one here since we merged them
+    for(target in target_list) {  
      
-      payoffMatrix <- list() # to take up the utility distributions
-      for(i in as1) { # run over all spots to inspect
-        for(path in as2) { # run over all attack paths
+      # create empty list 
+      payoffMatrix <- list() 
+
+      # This loop runs over all nodes that the defender can inspect
+      for(i in as1) { 
+        # So for ONE node now we loop over all possible attack paths for the attacker
+        # routes = [[1,2,8], [1,3,4,8], [1,2,8]]
+        for(path in as2) { 
+          # Creates list of zeros with length of V
+          # Remember V = [1,2,3,4,8] (UNIQUE nodes across all attack paths)
+          # U = [0, 0, 0, 0, 0]
           U <- rep(0, length(V))
+
+          # creates a dictionary 
+          # U = {1:0, 2:0, 3:0, 4:0, 8:0}
           names(U) <- V
           
+          # we do this for one specific node and for one specific path (iterate)
+          # now we iterate over all possible attacker start locations
+          # V = [1,2,3,4,8] (UNIQUE nodes across all attack paths)
+          # advList = [2,3,4] (Potential starting points of attacker)
+
+
           for(avatar in advList) {
             
+            # Creates another list of zeros with length of V
             L <- rep(0, length(V))
-            names(L) <- V   # for indexing by node ID
-            # adversary moves only if it is on this path
+
+            # Creates another dictionary
+            # L = {1:0, 2:0, 3:0, 4:0, 8:0}
+            names(L) <- V
+
+            # since it is totally possible that "avatar" is not in the current path
             if (avatar %in% path) {
+
+              # this creates only the "leftover" path from the current avatar location
+              # path = [1,2,4,8]
+              # avatar = 2
+              # route = [2,4,8]
               route <- path[which(path == avatar):length(path)]
               
-              # let the adv. take a random number of steps
+              # This gives us the poisson distr. for how many steps the attacker will take
+              # pdfD = [0.15, 0.30, 0.30, 0.20, 0.05] 
               pdfD <- randomSteps(route, attackRate, defenseRate)
-              
-              # correction over the past (2019) version of the code to avoid the cutpoint returning as -1
+               
+              # this case handles a situation where 
+              # as1 (set of nodes defender can act on) could in theory not be contained in the 
+              # path (route) we are looking at, This would return -1 which would be problematic
               cutPoint <- min(which(route == i), length(route)) 
               
               # truncate the distribution; there is the special case of the avatar

@@ -232,17 +232,28 @@ for(defenseRate in defenseRateList){
               # this case handles a situation where 
               # as1 (set of nodes defender can act on) could in theory not be contained in the 
               # path (route) we are looking at, This would return -1 which would be problematic
+
+              # but also this introduces a cut point for the defender
+              # which(route == i) returns the position of i in the route of the attacker
+              # i is the position where the defender checks the path this iteration
+              # which([1,2,8]  == 2) = 1
               cutPoint <- min(which(route == i), length(route)) 
               
-              # truncate the distribution; there is the special case of the avatar
-              # able to take the first step with probability 100%, but the defender
-              # blocking just at this point. In that case, the adversary would not move
-              # move as far as it can, and stop at the cutpoint
+              # This checks whether maybe all the nodes up until the cutpoint have a prob. of 0
+              # If pdfD = [0, 0, 0, 0.3, 0.7] and cut_point = 3, sum of [0, 0, 0] is 0
               if (sum(pdfD[1:cutPoint]) == 0) {
+                # This creates a list of zeros with length of "cutPoint"
+                # cut_point = 3 -> [0,0,0]
                 payoffDistr <- rep(0, cutPoint)
+
+                # now set the value 1 to the last entry of that list
+                # [0,0,0] -> [0,0,1]
                 payoffDistr[cutPoint] <- 1  # adversary moves exactly to the cutpoint
               } else {
                 # adversary moves at random
+                # Otherwise, normalize the probabilities up to cut point to sum to 1.
+                # Example: If pdfD = [0.2, 0.3, 0.5] and cut_point = 2, result is [0.4, 0.6]
+                # pdfD = [0, 0, 0, 0.3, 0.7] and cut_point = 3
                 payoffDistr <- pdfD[1:cutPoint]/sum(pdfD[1:cutPoint])
               }
               

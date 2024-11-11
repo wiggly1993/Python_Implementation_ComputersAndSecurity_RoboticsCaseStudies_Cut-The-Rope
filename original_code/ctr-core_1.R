@@ -15,7 +15,11 @@ library(HyRiM)
 # + attackRateList: list of attack rates to iterate over, whose values are used by "randomSteps"
 # + defenseRateList: list of defense rates (also used internally by "randomSteps" if this uses a geometric distribution)
 
-# what follows from here onwards is the same for all experiments
+
+
+# This section revoles around adding a new starting virtual node to the graph
+# [1,2,3,4,5]
+# ["attacker_entry_node", 1,2,3,4,5]
 ################################################################################
 
 # This finds the starting nodes that have no edges pointing to them
@@ -50,6 +54,11 @@ if (k > 1) {
 }
 
 ################################################################################
+
+
+# In this section we alter the graph structure from [1,2,3,4,5,6,7,8,9,10]
+# to something that contains only a single target node [1,2,3,4,5,6,7,8] <- 8 is the target here
+################################################################################
 # create a list of target nodes
 target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
 
@@ -57,52 +66,97 @@ target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
 # [0, 0, 0, ...]
 vertexNo <- matrix(0, nrow = 1, ncol = gorder(attack_graph))
 
-# create a dataframe that adds the labels for the nodes for each columns
+# create a "matrix" that adds the labels for the nodes for each columns
 #  A  B  C
 # [0, 0, 0]
+# Here the matrix still is (1,3), these labels appear to be living outside
 colnames(vertexNo) <- get.vertex.attribute(attack_graph, "name")
 
 # all nodes (10) - target nodes (3) + 1 = 8
 jointVertex <- gorder(attack_graph) - length(target_list) + 1
 
-
+# The value jointVertex was the number of all nodes - target nodes + 1
+# And this value will be inserted into VertexNo [0, 0, 0, ..]
+# But only at the locations of the targets nodes 
+# So we could have something like [0, 0, 8, 0, 8, 0, 8]
 vertexNo[,target_list] <- jointVertex
-vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
-attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
-# the "vertexNo" may be saved for later, to recover the original node
-# numbers before the renaming done by "contract.vertices"
 
-# the noder order must be re-computed after this renaming
-node_order <- as_ids(topo_sort(attack_graph))  # determine the node order from a topological sort...
-# note that the topological sort will put the final (single) target node at the end of the resulting list
-# we will use this below, when we output the chances to reach this (last) node, as the performance measure
-# of the optimized security policy
+# finds the 0s in vertexNo and replaces them with the numbers 1 to jointVertex - 1 # nolint
+# before: [0, 0, 8, 0, 8, 0, 8]
+# after: [1, 2, 8, 3, 8, 4, 8]
+vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
+
+#This line actually changes the graph
+# It merges all the nodes that were labeled with the same number (here 8) into one single node (virtual target)
+# all nodes that had unique labels remain as they were
+attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
+
+
+# Everything we did in this section was to start with the given attack graph
+# [1,2,3,4,5,6,7,8,9,10] <- with 2,4,6 as target nodes
+# and create a new graph out of that combines these target nodes at the end
+# [1,2,3,4,5,6,7,8] <- with 8 as the new (virtual) target node
+################################################################################
+
+
+# (Prob Models): Topological sort of all the nodes in the reduced Graph nodes
+# node_order = [1,3,2,5,7,4,6,8]
+# only add nodes whose parents already have been addded
+node_order <- as_ids(topo_sort(attack_graph))  
+
+# Gives us a new target list with ideally only one target node: [8] for our case
 target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
 ################################################################################
 
 
 ################################################################################
-# game setup: for each target, enumerate all paths => attack strategies,
-# and enumerate all points where the defender can become active
 
+# this creates a list of all possible paths from the entry node to the target node
+# [[1,2,8], [1,3,4,8], [1,5,6,7,8]]
 routes <- lapply(all_simple_paths(attack_graph, from=entry, to=target_list), as_ids)
-V <- unique(unlist(routes)) # get all nodes from all routes
-node_order <- intersect(node_order,  # use the pre-defined node_order for the given experiment...
-                        V) # ...and retain only those nodes that are also potential adversarial starting points
 
-# the defender can check everywhere, except on nodes that we exclude to avoid trivialities
-# unless we have an externally restricted action space for the defender, the default is to defend everywhere
+# get all nodes from all routes (potential attacker starting points)
+# Before: routes = [[1,2,8], [1,3,4,8], [1,2,8]]
+# After: V = [1,2,3,4,8] (unique nodes across all paths)
+V <- unique(unlist(routes)) 
+
+# we want a list of V that is sorted topologically
+# to achieve this we use intersect to only keep the nodes that are in node_order
+# node_order = [1,3,2,4,8]
+node_order <- intersect(node_order, 
+                        V) 
+
+
+# as1 is supposed to be a list of nodes the defender can act on
+# so what this line does is to take V and remove the virtual entry, the root nodes and the target node(s)
+# If V = [1,2,3,4,5,6,7,8] where:
+# attacker_entry_node = 1
+# roots = [2]
+# target_list = [8]
+# Then as1 = [3,4,5,6,7] (places where defender can act)
 if (!exists("as1")) {
   as1 <- setdiff(V, c("attacker_entry_node", roots, target_list))
 }
 
-as2 <- routes  # action space for the attacker
+# This defines the attackers action space
+# But instead of giving him individual nodes, we give him the routes
+# routes = [[1,2,8], [1,3,4,8], [1,2,8]]
+as2 <- routes
+
+# number of different attack routes the attacker has
 m <- length(as2)
+# number of different individual nodes the defender can act on
 n <- length(as1)
 
-# assume one hypothetical adversary for each possible start location
-advList <- setdiff(V, c(entry, target_list))  # exclude trivial cases where the attacker starts right from the finish line (=> would not make sense)
-# we assign equal contributions to the defender's loss caused by all hypothetical adversaries
+
+# This creates a list of all possible nodes where the attacker could start but we are excluding
+# the entry node and target node(s)
+# V = [1,2,3,4,8]
+# advList = [2,3,4]
+advList <- setdiff(V, c(entry, target_list))  
+
+# This creates a list where each adversary location is given equal probability (1/n). 
+# This represents the defender's uncertainty about where the attacker might be
 Theta <- rep(1/n, times = length(advList))
 names(Theta) <- advList
 

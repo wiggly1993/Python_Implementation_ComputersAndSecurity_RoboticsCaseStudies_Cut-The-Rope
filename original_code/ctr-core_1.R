@@ -205,8 +205,7 @@ for(defenseRate in defenseRateList){
           # now we iterate over all possible attacker start locations
           # V = [1,2,3,4,8] (UNIQUE nodes across all attack paths)
           # advList = [2,3,4] (Potential starting points of attacker)
-
-
+          # important: This part is responsible for the "attacker can start anywhere" condition.
           for(avatar in advList) {
             
             # Creates another list of zeros with length of V
@@ -216,7 +215,9 @@ for(defenseRate in defenseRateList){
             # L = {1:0, 2:0, 3:0, 4:0, 8:0}
             names(L) <- V
 
-            # since it is totally possible that "avatar" is not in the current path
+            # now after we picked a starting location we ask "is the starting location in the path?"
+            # that way we only consider the paths that the attacker is actually on
+            # at the same time it is possible to have the SAME path multiple times with attacker at different starting locations
             if (avatar %in% path) {
 
               # this creates only the "leftover" path from the current avatar location
@@ -226,7 +227,7 @@ for(defenseRate in defenseRateList){
               route <- path[which(path == avatar):length(path)]
               
               # This gives us the poisson distr. for how many steps the attacker will take
-              # pdfD = [0.15, 0.30, 0.30, 0.20, 0.05] 
+              # pdfD = [0.15, 0.30, 0.30] 
               pdfD <- randomSteps(route, attackRate, defenseRate)
                
               # this case handles a situation where 
@@ -236,7 +237,7 @@ for(defenseRate in defenseRateList){
               # but also this introduces a cut point for the defender
               # which(route == i) returns the position of i in the route of the attacker
               # i is the position where the defender checks the path this iteration
-              # which([1,2,8]  == 2) = 1
+              # which([1,2,8]  == 2) = 2
               cutPoint <- min(which(route == i), length(route)) 
               
               # This checks whether maybe all the nodes up until the cutpoint have a prob. of 0
@@ -257,52 +258,83 @@ for(defenseRate in defenseRateList){
                 payoffDistr <- pdfD[1:cutPoint]/sum(pdfD[1:cutPoint])
               }
               
+              # This takes a small part of the route "route[1:cutPoint]" and assigns 
+              # the payoffDistr to it
+              # The point is that L has a lenght of V which means ALL the possible nodes across ALL paths
+              # this means some entries will remain 0 while others will get the probabilities
+              # Result: L = {1:0, 2:0.4, 3:0, 4:0.6, 8:0}
               L[route[1:cutPoint]] <- payoffDistr
             }
-            else { # otherwise, the adversary doesn't move
-              # note that this bit of code expresses that the full mass is here at the starting location 
-              # of the avatar, implying that there is zero mass on any of the goals
-              # => this is consistent with the situation that the attack 'does not happen' over this route at all
+            # if the avatar (starting node) is NOT in the current path this happens
+            else { 
+              # We just assign 1 to the node where the attacker started and remains (no steps)
+              # L = {1:0, 2:0, 3:1, 4:0, 8:0}
               L[avatar] <- 1  
-              # Remark: without the above line, the losses would come up with empty categories (which the solver cannot handle)
             }
-            # update the mix over all adversarial avatars
+            # we aggregate here all the 
+            # L1 = {1:0, 2:0.4, 3:0, 4:0.6, 8:0}
+            # L2 = {1:0, 2:0, 3:1, 4:0, 8:0}
+            # L3 = {1:0, 2:0, 3:0, 4:0.7, 8:0.3}
+            # U = {1:0, 2:0.08, 3:0.2, 4:0.54, 8:0.18}
+            # We iterate overa all Sub-Paths (Avatar starting location in one path) 
+            # Such that at the end we have one U for one Path
             U <- U + Theta[avatar] * L
           }
-          # construct the loss distribution
+          # normalize the distribution of the attacker for ONE path
           U <- U / sum(U)  # avoid warnings (by lossDistribution) to not have normalized yet
           
-          # re-order according to shortest distances to make the tail masses = the probabilities
-          # to hit (one of) the target(s)
-          # the variable "node_order" is supplied externally
+          # this re-orders the distribution U according to the topological sorting of the nodes
+          # U = {1:0.1, 2:0.2, 3:0.1, 4:0.4, 8:0.2}
+          # U = {1:0.1, 3:0.1, 2:0.2, 4:0.4, 8:0.2}
           U <- U[node_order]
           
-          # fix zero-probability categories, if a path does not put mass there
-          # since the adversary does not arrive at this (particular) goal.
-          # this is just to avoid the later solver to throw an exception, 
-          # and we will keep the "noise" below the tolerance threshold (1e-5); see below
+          # prevent pure 0s to avoid errors in lossDistribution
           U[U == 0] <- 1e-7
-          
+
+          # uses a pre-defined hyrim function to create
+          # ld$support - Categories: [1, 2, 3, 4, 5] 
+          # ld$dpdf  - PDF: [0, 0.08, 0.2, 0.54, 0.18]
+          # ld$cdf  - CDF: [0, 0.08, 0.28, 0.82, 1.0]
+          # ld$tail - Tail: [1.0, 1.0, 0.92, 0.72, 0.18] 
           ld <- lossDistribution(U, discrete=TRUE, dataType="pdf", supp=c(1,length(V)), smoothing="always", bw = 0.2)
+          # we append our findings ld into the pay off matrix
+          # important note: each unique attack path provides us with one such list
+          # but remember: we do this for each "defender check" node and within that for each attack path
+          # so if we have 5 nodes the defender can check and 3 attack paths this matrix will contain 15 lists
           payoffMatrix <- append(payoffMatrix, list(ld))
         } #loop over all attack paths
       } #loop over all spot check locations
       
+      # ignore for now, since we have only 1 target node
       payoffsList <- append(payoffsList, payoffMatrix)
-    }   #loop over all target nodes (if there is more than one; not yet implemented/studied)
-    # construct and solve the game
+    }  
     
+    # G is the final game object that contains (a bit like a dictionary)
+    # All possible moves for defender (which node to check)
+    # All possible moves for attacker (which path to take)
+    # The payoff matrices that tell us what happens for each combination
     G <- mosg(n, m, goals = length(target_list), 
               losses = payoffsList, byrow = TRUE, 
               defensesDescr = (as1 %>% as.character))
+
+    # Hyrim function that computes the multi-goal security strategy
     eq <- mgss(G, tol=1e-5)  # compute a multi-goal security strategy
     print(eq)      # printout the equilibrium (optimal defense)
-    # print out the assurance, i.e., optimal likelihood to hit the goal
-    # by the node ordering, the target is the *last* entry in the optimally assured loss distribution
-    # (i.e., the highest category of damage)
+
+    # get the solution distribtion for the attacker
     loc <- eq$assurances$`1`$dpdf
+    # get the last value which represents the probability of the attacker reaching the target
     print(round(loc[length(loc)], digits=3))
     
   } # loop over all attack rates
 } # loop over all defense rates
 
+# eq = {
+#     'optimal_defense': {
+#         'node3': 0.7,  # check node3 with 70% probability
+#         'node4': 0.3   # check node4 with 30% probability
+#     },
+#     'assurances': {
+#         'target8': 0.25  # attacker can reach target with at most 25% probability
+#     }
+# }

@@ -7,11 +7,11 @@
 library(igraph)
 
 attack_graph <- graph_from_literal(
-  1 -+ 2,
-  2 -+ 3:4:5,
+  1 -+ 2, # 1 -> 2
+  2 -+ 3:4:5, # this means 2 can go to 3,4,5
   3 -+ 6,
   4 -+ 6,
-  5 -+ 7 -+ 8 -+ 9
+  5 -+ 7 -+ 8 -+ 9 # 5 -> 7 -> 8 -> 9
 )
 
 node_order <- as_ids(topo_sort(attack_graph))  # determine the node order from a topological sort...

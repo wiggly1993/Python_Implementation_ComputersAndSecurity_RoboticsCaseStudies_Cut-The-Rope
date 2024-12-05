@@ -100,8 +100,8 @@ attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
 
 
 # (Prob Models): Topological sort of all the nodes in the reduced Graph nodes
-# node_order = [1,3,2,5,7,4,6,8]
-# only add nodes whose parents already have been addded
+# (Prob Models): node_order = [1,3,2,5,7,4,6,8]
+# (Prob Models): only add nodes whose parents already have been addded
 node_order <- as_ids(topo_sort(attack_graph))  
 
 # Gives us a new target list with ideally only one target node: [8] for our case
@@ -161,7 +161,7 @@ Theta <- rep(1/n, times = length(advList))
 
 # Create dictionary mapping locations to their probabilities
 # Before: advList = [2,3,4,5,6,7]
-#         Theta = [1/5, 1/5, 1/5, 1/5, 1/5, 1/5]
+#         Theta = [0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
 # After: Theta = {2: 0.2, 3: 0.2, 4: 0.2, 5: 0.2, 6: 0.2, 7: 0.2}
 names(Theta) <- advList
 
@@ -247,14 +247,15 @@ for(defenseRate in defenseRateList){
                 # cut_point = 3 -> [0,0,0]
                 payoffDistr <- rep(0, cutPoint)
 
+                # adversary moves at random
                 # now set the value 1 to the last entry of that list
+                # pdfD = [0, 0, 0, 0.3, 0.7] and cut_point = 3
                 # [0,0,0] -> [0,0,1]
                 payoffDistr[cutPoint] <- 1  # adversary moves exactly to the cutpoint
               } else {
-                # adversary moves at random
-                # Otherwise, normalize the probabilities up to cut point to sum to 1.
-                # Example: If pdfD = [0.2, 0.3, 0.5] and cut_point = 2, result is [0.4, 0.6]
-                # pdfD = [0, 0, 0, 0.3, 0.7] and cut_point = 3
+                # Otherwise, normalize the probabilities up to cut point
+                # Example: If pdfD = [0.2, 0.3, 0.5] and cut_point = 2, 
+                # result is [0.4, 0.6]
                 payoffDistr <- pdfD[1:cutPoint]/sum(pdfD[1:cutPoint])
               }
               
@@ -276,8 +277,9 @@ for(defenseRate in defenseRateList){
             # L2 = {1:0, 2:0, 3:1, 4:0, 8:0}
             # L3 = {1:0, 2:0, 3:0, 4:0.7, 8:0.3}
             # U = {1:0, 2:0.08, 3:0.2, 4:0.54, 8:0.18}
-            # We iterate overa all Sub-Paths (Avatar starting location in one path) 
-            # Such that at the end we have one U for one Path
+            # We iterate overa all Avatar starting locations
+            # Such that at the end we have one U for one Path (since we iterated over all avatars for that path)
+            # Note: It is possible that some of these avatars were NOT in the path but we still iterate over them as well
             U <- U + Theta[avatar] * L
           }
           # normalize the distribution of the attacker for ONE path

@@ -64,20 +64,20 @@ internal_nodes <- V(attack_graph)[!(V(attack_graph) %in% c(entry_nodes, exit_nod
 # cat("\nTotal nodes:", gorder(attack_graph), "\n")
 # cat("Total edges:", gsize(attack_graph), "\n")
 
-# # Let's also check what happens in the preprocessing of Cut-The-Rope
-# # After adding virtual entry node (if needed)
-# roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
+# Let's also check what happens in the preprocessing of Cut-The-Rope
+# After adding virtual entry node (if needed)
+roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
 # cat("\nAfter checking roots:\n")
 # cat("Root nodes:", roots, "\n")
 
-# # After finding target nodes 
-# target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
+# After finding target nodes 
+target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
 # cat("\nAfter checking targets:\n")
 # cat("Target nodes:", target_list, "\n")
 
-# # Let's see what nodes are actually considered for avatars
-# V <- unique(unlist(all_simple_paths(attack_graph, from=roots[1], to=target_list)))
-# adv_list <- setdiff(V, c(roots, target_list))
+# Let's see what nodes are actually considered for avatars
+V <- unique(unlist(all_simple_paths(attack_graph, from=roots[1], to=target_list)))
+adv_list <- setdiff(V, c(roots, target_list))
 # cat("\nPossible avatar locations:\n")
 # cat("Number of locations:", length(adv_list), "\n")
 # cat("Locations:", adv_list, "\n")

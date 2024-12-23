@@ -1,6 +1,3 @@
-# define the attack graph and compile it for an application of
-# "Cut-The-Rope"
-
 library(igraph)
 
 attack_graph <- graph_from_literal(
@@ -50,49 +47,5 @@ attack_graph <- set_edge_attr(attack_graph,
                               index = E(attack_graph),
                               value = -log(edgeProbs))
 
-node_order <- as_ids(topo_sort(attack_graph))  
+node_order <- as_ids(topo_sort(attack_graph))  # determine the node order from a topological sort
 
-# Analyze nodes in R igraph
-entry_nodes <- V(attack_graph)[degree(attack_graph, mode="in")==0]
-exit_nodes <- V(attack_graph)[degree(attack_graph, mode="out")==0]
-internal_nodes <- V(attack_graph)[!(V(attack_graph) %in% c(entry_nodes, exit_nodes))]
-
-# cat("Node Analysis in R:\n")
-# cat("Entry nodes (in_degree = 0):", as_ids(entry_nodes), "\n")
-# cat("Exit nodes (out_degree = 0):", as_ids(exit_nodes), "\n")
-# cat("Internal nodes:", as_ids(internal_nodes), "\n")
-# cat("\nTotal nodes:", gorder(attack_graph), "\n")
-# cat("Total edges:", gsize(attack_graph), "\n")
-
-# Let's also check what happens in the preprocessing of Cut-The-Rope
-# After adding virtual entry node (if needed)
-roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
-# cat("\nAfter checking roots:\n")
-# cat("Root nodes:", roots, "\n")
-
-# After finding target nodes 
-target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
-# cat("\nAfter checking targets:\n")
-# cat("Target nodes:", target_list, "\n")
-
-# Let's see what nodes are actually considered for avatars
-V <- unique(unlist(all_simple_paths(attack_graph, from=roots[1], to=target_list)))
-adv_list <- setdiff(V, c(roots, target_list))
-# cat("\nPossible avatar locations:\n")
-# cat("Number of locations:", length(adv_list), "\n")
-# cat("Locations:", adv_list, "\n")
-
-
-# determine the node order from a topological sort
-
-# # uncomment the next lines, if the experiment should run with only partial knowledge
-# # about the attack graph. The "known_fraction" is any value between 0 and 1, reflecting
-# # how many nodes are included in the defendable set
-# # the "set.seed" is required to have the *same* sample between the heuristic and CTR executions,
-# # to compare performances on the same (reduced) defense sets. Uncomment this line for an individual
-# # run of the experiment (not for comparative reasons)
-# set.seed(seed = 3141592)  # the seed is arbitrary (here, the it is "Pi" without decimal dot :-))
-# known_fraction <- 0.75 # we know x% of the graph
-# as1 <- c(1,2,3,4,5,6,7,8,9,10,11,15) # exclude nodes 12,13,14 and 16 since these are the final targets
-# as1 <- sample(as1, round(known_fraction * length(as1), digits = 0))  # exclude the target nodes manually here
-# cat(c("reduced defense set = ", as1))

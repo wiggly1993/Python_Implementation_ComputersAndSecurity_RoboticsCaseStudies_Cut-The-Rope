@@ -25,8 +25,8 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   pdfD <- pdfD / sum(pdfD)
   return(pdfD)
 }
-
-source("ctr-core_1.R")
+# THIS WAS CHANGED
+source("debug_ctr-core_1.R")
 
 sink()
 file.show(outputLogFile)

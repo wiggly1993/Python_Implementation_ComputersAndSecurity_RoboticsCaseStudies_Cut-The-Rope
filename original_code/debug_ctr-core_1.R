@@ -188,7 +188,11 @@ for(defenseRate in defenseRateList) {
               start_idx <- which(path == avatar)
               route <- path[start_idx:length(path)]
               
+              cat("\nProcessing avatar", avatar, ":\n")
+              cat("Route from avatar:", paste(route, collapse="->"), "\n")
+              
               pdfD <- randomSteps(route, attackRate, defenseRate)
+              cat("PDF for entire route:", paste(pdfD, collapse=", "), "\n")
               
               # Identify cut point if defender checks i along that route
               if (i %in% route) {
@@ -196,28 +200,23 @@ for(defenseRate in defenseRateList) {
               } else {
                 cutPoint <- length(route)
               }
-              
-              # debug prints
-              cat("Avatar:", avatar, "is in path.\n")
-              cat("Route from avatar:", paste(route, collapse="->"), "\n")
-              cat("pdfD for entire route:", paste(pdfD, collapse=", "), "\n")
               cat("Cut point:", cutPoint, "\n")
               
               pdf_subset <- pdfD[1:cutPoint]
+              cat("PDF subset:", paste(pdf_subset, collapse=", "), "\n")
+              
               if (sum(pdf_subset) < 1e-15) {
                 payoffDistr <- rep(0, cutPoint)
                 payoffDistr[cutPoint] <- 1
               } else {
                 payoffDistr <- pdf_subset / sum(pdf_subset)
               }
+              cat("Payoff distribution:", paste(payoffDistr, collapse=", "), "\n")
               
               route_subset <- route[1:cutPoint]
               L[route_subset] <- payoffDistr
               
-              # debug partial L
               cat("Route subset:", paste(route_subset, collapse="->"), "\n")
-              cat("payoffDistr (normalized up to cutPoint):",
-                  paste(payoffDistr, collapse=", "), "\n")
               cat("L distribution for this avatar (BEFORE weighting by Theta):\n")
               for(idx_l in seq_along(L)) {
                 if(abs(L[idx_l]) > 1e-15) {
@@ -228,13 +227,20 @@ for(defenseRate in defenseRateList) {
             } else {
               # If avatar not on path, stays at its location (prob=1)
               L[avatar] <- 1
+              cat("\nProcessing avatar", avatar, "(not in path):\n")
+              cat("L[", avatar, "] = 1.0\n")
             }
             
-            # Accumulate in U, weighted by our prior Theta
+            cat("\nTheta[", avatar, "] =", Theta[avatar], "\n")
             U <- U + Theta[avatar] * L
+            cat("Current U after adding this avatar's contribution:\n")
+            for(idx_u in seq_along(U)) {
+              if(abs(U[idx_u]) > 1e-10) {
+                cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
+              }
+            }
           }
           
-          # --- DEBUG PRINT: U BEFORE normalization ---
           cat("\n--- Aggregated U for check =", i, 
               ", path =", paste(path, collapse="->"),
               " (BEFORE normalization) ---\n")
@@ -254,7 +260,6 @@ for(defenseRate in defenseRateList) {
           }
           U <- U[node_order]
           
-          # --- DEBUG PRINT: U AFTER normalization ---
           cat("\n--- Normalized U for check =", i,
               ", path =", paste(path, collapse="->"), "---\n")
           for(idx_u2 in seq_along(U)) {
@@ -279,10 +284,9 @@ for(defenseRate in defenseRateList) {
               losses = payoffsList, byrow = TRUE,
               defensesDescr = (as1 %>% as.character))
     eq <- mgss(G, tol=1e-5)
-    print(eq)
+    print(eq)    # Let R handle the printing of the equilibrium
     
     loc <- eq$assurances$`1`$dpdf
     print(round(loc[length(loc)], digits=3))
   }
 }
-

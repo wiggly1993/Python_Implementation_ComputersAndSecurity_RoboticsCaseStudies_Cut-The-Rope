@@ -41,6 +41,21 @@ attack_graph <- set_edge_attr(attack_graph,
                               index = E(attack_graph),
                               value = edgeProbs)
 
+
+# After edge probability assignment
+cat("\nEdge probabilities after assignment:\n")
+for(i in seq_along(E(attack_graph))) {
+    e <- E(attack_graph)[i]
+    prob <- E(attack_graph)$edge_probabilities[i]  # Changed this line
+    cat(sprintf("Edge %d: %s->%s: prob=%f\n", 
+        i, 
+        ends(attack_graph, e)[1], 
+        ends(attack_graph, e)[2], 
+        prob))
+}
+
+
+
 # edge probabilities defined such that the most probably exploitable route = the shortest path
 attack_graph <- set_edge_attr(attack_graph,
                               name = "weight",

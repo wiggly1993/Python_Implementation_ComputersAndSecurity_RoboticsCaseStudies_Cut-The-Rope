@@ -53,15 +53,15 @@ if (k > 1) {
   entry <- roots[1]
 }
 
-# # Debug print before merging targets
-# cat("\nBefore merging targets:\n")
-# cat("Nodes:", V(attack_graph)$name, "\n")
-# cat("Edges with weights:\n")
-# E(attack_graph)$weight <- ifelse(is.na(E(attack_graph)$weight), 1, E(attack_graph)$weight)
-# for(e in E(attack_graph)) {
-#     cat(ends(attack_graph, e)[1], "->", ends(attack_graph, e)[2], ":", 
-#         E(attack_graph)$weight[e], "\n")
-# }
+# Debug print before merging targets
+cat("\nBefore merging targets:\n")
+cat("Nodes:", V(attack_graph)$name, "\n")
+cat("Edges with weights:\n")
+E(attack_graph)$weight <- ifelse(is.na(E(attack_graph)$weight), 1, E(attack_graph)$weight)
+for(e in E(attack_graph)) {
+    cat(ends(attack_graph, e)[1], "->", ends(attack_graph, e)[2], ":", 
+        E(attack_graph)$weight[e], "\n")
+}
 
 ################################################################################
 target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
@@ -71,23 +71,23 @@ jointVertex <- gorder(attack_graph) - length(target_list) + 1
 vertexNo[,target_list] <- jointVertex
 vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
 
-# # Debug print vertexNo mapping
-# cat("\nANALYSIS of R STARTS NOW:\n")
-# cat("\nVertexNo mapping:\n")
-# print(vertexNo)
+# Debug print vertexNo mapping
+cat("\nANALYSIS of R STARTS NOW:\n")
+cat("\nVertexNo mapping:\n")
+print(vertexNo)
 
 attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
 
-# # Debug print after merging
-# cat("\n AFTER merging targets:\n")
-# cat("Node count:", gorder(attack_graph), "\n")
-# cat("Edge count:", gsize(attack_graph), "\n\n")
+# Debug print after merging
+cat("\n AFTER merging targets:\n")
+cat("Node count:", gorder(attack_graph), "\n")
+cat("Edge count:", gsize(attack_graph), "\n\n")
 
-# cat("Edge structure after merging:\n")
-# for(i in seq_along(E(attack_graph))) {
-#     cat("Edge", i, ":", paste(ends(attack_graph, E(attack_graph)[i]), collapse=", "),
-#         "weight:", E(attack_graph)$weight[i], "\n")
-# }
+cat("Edge structure after merging:\n")
+for(i in seq_along(E(attack_graph))) {
+    cat("Edge", i, ":", paste(ends(attack_graph, E(attack_graph)[i]), collapse=", "),
+        "weight:", E(attack_graph)$weight[i], "\n")
+}
 
 ################################################################################
 node_order <- as_ids(topo_sort(attack_graph))

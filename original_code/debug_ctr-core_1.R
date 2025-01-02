@@ -63,21 +63,61 @@ for(e in E(attack_graph)) {
         E(attack_graph)$weight[e], "\n")
 }
 
-################################################################################
+# Debug target identification
 target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
+cat("\nTARGET IDENTIFICATION:\n")
+cat("Found target nodes:", paste(target_list, collapse=", "), "\n")
+cat("Number of targets:", length(target_list), "\n")
+
+# Debug edge structure before contraction
+cat("\nEDGE STRUCTURE BEFORE CONTRACTION:\n")
+cat("Edges to target nodes:\n")
+for(target in target_list) {
+    incident_edges <- incident(attack_graph, target, mode="in")
+    cat("\nTarget", target, "incoming edges:\n")
+    for(e in incident_edges) {
+        from_vertex <- ends(attack_graph, e)[1]
+        cat("From:", from_vertex, "Weight:", E(attack_graph)$weight[e], "\n")
+    }
+}
+
+# Create mapping and perform contraction
 vertexNo <- matrix(0, nrow = 1, ncol = gorder(attack_graph))
 colnames(vertexNo) <- get.vertex.attribute(attack_graph, "name")
 jointVertex <- gorder(attack_graph) - length(target_list) + 1
 vertexNo[,target_list] <- jointVertex
 vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
 
-# Debug print vertexNo mapping
-cat("\nANALYSIS of R STARTS NOW:\n")
-cat("\nVertexNo mapping:\n")
+cat("\nPERFORMING CONTRACTION:\n")
+cat("Using contract.vertices with mapping:\n")
 print(vertexNo)
-
 attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
 
+# Debug final structure and parallel edges
+cat("\nFINAL GRAPH STRUCTURE:\n")
+cat("Node count:", gorder(attack_graph), "\n")
+cat("Edge count:", gsize(attack_graph), "\n")
+
+# Analyze parallel edges
+edge_df <- data.frame(
+    from = ends(attack_graph, E(attack_graph))[,1],
+    to = ends(attack_graph, E(attack_graph))[,2],
+    weight = E(attack_graph)$weight
+)
+
+cat("\nPARALLEL EDGE ANALYSIS:\n")
+for(pair in unique(paste(edge_df$from, "->", edge_df$to))) {
+    subset <- edge_df[paste(edge_df$from, "->", edge_df$to) == pair,]
+    if(nrow(subset) > 1) {
+        cat("\nParallel edges for", pair, ":\n")
+        cat("Count:", nrow(subset), "\n")
+        cat("Weights:", paste(subset$weight, collapse=", "), "\n")
+    }
+}
+
+
+
+#########
 # Debug print after merging
 cat("\n AFTER merging targets:\n")
 cat("Node count:", gorder(attack_graph), "\n")

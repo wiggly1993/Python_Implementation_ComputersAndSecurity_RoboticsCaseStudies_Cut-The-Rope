@@ -161,9 +161,18 @@ if (!exists("attackRateList")) { attackRateList <- 0 }
 
 for(defenseRate in defenseRateList) {
   for(attackRate in attackRateList) {
-    cat("\n++++++++++++++++++++++++++++++++\nattack rate = ", attackRate, 
-        ", defense rate = ", defenseRate, "\n")
+    #cat("\n++++++++++++++++++++++++++++++++\nattack rate = ", attackRate, 
+    #    ", defense rate = ", defenseRate, "\n")
     payoffsList <- NULL
+
+
+    # Add debug statements here
+    cat("\n=== Debug: Strategy Mappings ===\n")
+    cat("Defender strategies (as1):", paste(as1, collapse=", "), "\n")
+    cat("Attacker paths (as2):\n")
+    for(idx in seq_along(as2)) {
+        cat("Path", idx-1, ":", paste(as2[[idx]], collapse="->"), "\n")
+    }
     
     for(target in target_list) {
       payoffMatrix <- list()
@@ -175,8 +184,8 @@ for(defenseRate in defenseRateList) {
           U <- rep(0, length(V))
           names(U) <- V
           
-          cat("\n--- Starting payoff calc for check =", i,
-              ", path =", paste(path, collapse="->"), "---\n")
+          #cat("\n--- Starting payoff calc for check =", i,
+          #    ", path =", paste(path, collapse="->"), "---\n")
           
           # Loop over all possible attacker starts (avatars)
           for(avatar in advList) {
@@ -188,11 +197,11 @@ for(defenseRate in defenseRateList) {
               start_idx <- which(path == avatar)
               route <- path[start_idx:length(path)]
               
-              cat("\nProcessing avatar", avatar, ":\n")
-              cat("Route from avatar:", paste(route, collapse="->"), "\n")
+              #cat("\nProcessing avatar", avatar, ":\n")
+              #cat("Route from avatar:", paste(route, collapse="->"), "\n")
               
               pdfD <- randomSteps(route, attackRate, defenseRate)
-              cat("PDF for entire route:", paste(pdfD, collapse=", "), "\n")
+              #cat("PDF for entire route:", paste(pdfD, collapse=", "), "\n")
               
               # Identify cut point if defender checks i along that route
               if (i %in% route) {
@@ -200,10 +209,10 @@ for(defenseRate in defenseRateList) {
               } else {
                 cutPoint <- length(route)
               }
-              cat("Cut point:", cutPoint, "\n")
+              #cat("Cut point:", cutPoint, "\n")
               
               pdf_subset <- pdfD[1:cutPoint]
-              cat("PDF subset:", paste(pdf_subset, collapse=", "), "\n")
+              #cat("PDF subset:", paste(pdf_subset, collapse=", "), "\n")
               
               if (sum(pdf_subset) < 1e-15) {
                 payoffDistr <- rep(0, cutPoint)
@@ -211,44 +220,44 @@ for(defenseRate in defenseRateList) {
               } else {
                 payoffDistr <- pdf_subset / sum(pdf_subset)
               }
-              cat("Payoff distribution:", paste(payoffDistr, collapse=", "), "\n")
+              #cat("Payoff distribution:", paste(payoffDistr, collapse=", "), "\n")
               
               route_subset <- route[1:cutPoint]
               L[route_subset] <- payoffDistr
               
-              cat("Route subset:", paste(route_subset, collapse="->"), "\n")
-              cat("L distribution for this avatar (BEFORE weighting by Theta):\n")
-              for(idx_l in seq_along(L)) {
-                if(abs(L[idx_l]) > 1e-15) {
-                  cat("  Node", names(L)[idx_l], ":", L[idx_l], "\n")
-                }
-              }
+              #cat("Route subset:", paste(route_subset, collapse="->"), "\n")
+              #cat("L distribution for this avatar (BEFORE weighting by Theta):\n")
+              #for(idx_l in seq_along(L)) {
+              #  if(abs(L[idx_l]) > 1e-15) {
+              #    cat("  Node", names(L)[idx_l], ":", L[idx_l], "\n")
+              #  }
+              #}
               
             } else {
               # If avatar not on path, stays at its location (prob=1)
               L[avatar] <- 1
-              cat("\nProcessing avatar", avatar, "(not in path):\n")
-              cat("L[", avatar, "] = 1.0\n")
+              #cat("\nProcessing avatar", avatar, "(not in path):\n")
+              #cat("L[", avatar, "] = 1.0\n")
             }
             
-            cat("\nTheta[", avatar, "] =", Theta[avatar], "\n")
+            #cat("\nTheta[", avatar, "] =", Theta[avatar], "\n")
             U <- U + Theta[avatar] * L
-            cat("Current U after adding this avatar's contribution:\n")
-            for(idx_u in seq_along(U)) {
-              if(abs(U[idx_u]) > 1e-10) {
-                cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
-              }
-            }
+            #cat("Current U after adding this avatar's contribution:\n")
+            #for(idx_u in seq_along(U)) {
+            #  if(abs(U[idx_u]) > 1e-10) {
+            #    cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
+            #  }
+            #}
           }
           
-          cat("\n--- Aggregated U for check =", i, 
-              ", path =", paste(path, collapse="->"),
-              " (BEFORE normalization) ---\n")
-          for(idx_u in seq_along(U)) {
-            if(abs(U[idx_u]) > 1e-10) {
-              cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
-            }
-          }
+          #cat("\n--- Aggregated U for check =", i, 
+          #    ", path =", paste(path, collapse="->"),
+          #    " (BEFORE normalization) ---\n")
+          #for(idx_u in seq_along(U)) {
+          #  if(abs(U[idx_u]) > 1e-10) {
+          #    cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
+          #  }
+          #}
           
           # Normalize U
           if(sum(U) < 1e-15) {
@@ -260,25 +269,59 @@ for(defenseRate in defenseRateList) {
           }
           U <- U[node_order]
           
-          cat("\n--- Normalized U for check =", i,
-              ", path =", paste(path, collapse="->"), "---\n")
-          for(idx_u2 in seq_along(U)) {
-            if(abs(U[idx_u2]) > 1e-10) {
-              cat("  Node", names(U)[idx_u2], ":", U[idx_u2], "\n")
-            }
-          }
+          # cat("\n--- Normalized U for check =", i,
+          #     ", path =", paste(path, collapse="->"), "---\n")
+          # for(idx_u2 in seq_along(U)) {
+          #   if(abs(U[idx_u2]) > 1e-10) {
+          #     cat("  Node", names(U)[idx_u2], ":", U[idx_u2], "\n")
+          #   }
+          # }
           
           # Create final distribution object for this (i, path)
+          # cat("Pre-lossDistribution U for check=", i, 
+          # ", path=", paste(path, collapse="->"), 
+          # ":", paste(U, collapse=", "), "\n")
+
           ld <- lossDistribution(
             U, discrete=TRUE, dataType="pdf",
             supp=c(1,length(V)), smoothing="always", bw=0.2
           )
           payoffMatrix <- append(payoffMatrix, list(ld))
+
         }
       }
       payoffsList <- append(payoffsList, payoffMatrix)
     }
     
+    # NEW DEBUG CODE: Print payoff matrix before MOSG construction
+    cat("\n=== Debug: Final Payoff Matrix ===\n")
+    matrix_rows <- length(as1)
+    matrix_cols <- length(as2)
+    cat("Matrix dimensions:", matrix_rows, "x", matrix_cols, "\n\n")
+    
+    # Create a matrix to store the values we care about
+    debug_matrix <- matrix(0, nrow=matrix_rows, ncol=matrix_cols)
+    
+    # Fill the matrix with the final probabilities (last value of dpdf for each distribution)
+    for(i in 1:matrix_rows) {
+        for(j in 1:matrix_cols) {
+            idx <- (i-1)*matrix_cols + j
+            debug_matrix[i,j] <- payoffsList[[idx]]$dpdf[length(V)]
+        }
+    }
+    
+    # Print the matrix in a readable format
+    cat("Payoff Matrix (probability of reaching target):\n")
+    for(i in 1:matrix_rows) {
+        cat(sprintf("Row %2d:", i))
+        for(j in 1:matrix_cols) {
+            cat(sprintf(" %8.6f", debug_matrix[i,j]))
+        }
+        cat("\n")
+    }
+    
+    cat("\n=== End Debug: Final Payoff Matrix ===\n")
+
     # Construct and solve the MOSG
     G <- mosg(n, m, goals = length(target_list),
               losses = payoffsList, byrow = TRUE,

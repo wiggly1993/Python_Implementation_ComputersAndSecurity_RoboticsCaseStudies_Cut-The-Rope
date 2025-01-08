@@ -48,38 +48,38 @@ if (k > 1) {
   attack_graph <- set_edge_attr(attack_graph,
                                 name = "weight",
                                 index = get.edge.ids(attack_graph, edgelist),
-                                value = 1)
+                                value = 1) # <- is this weight correct? p=exp(-weight) gives us here p=0.36
 } else {
   entry <- roots[1]
 }
 
-# Debug print before merging targets
-cat("\nBefore merging targets:\n")
-cat("Nodes:", V(attack_graph)$name, "\n")
-cat("Edges with weights:\n")
-E(attack_graph)$weight <- ifelse(is.na(E(attack_graph)$weight), 1, E(attack_graph)$weight)
-for(e in E(attack_graph)) {
-    cat(ends(attack_graph, e)[1], "->", ends(attack_graph, e)[2], ":", 
-        E(attack_graph)$weight[e], "\n")
-}
+# # Debug print before merging targets
+# cat("\nBefore merging targets:\n")
+# cat("Nodes:", V(attack_graph)$name, "\n")
+# cat("Edges with weights:\n")
+# E(attack_graph)$weight <- ifelse(is.na(E(attack_graph)$weight), 1, E(attack_graph)$weight)
+# for(e in E(attack_graph)) {
+#     cat(ends(attack_graph, e)[1], "->", ends(attack_graph, e)[2], ":", 
+#         E(attack_graph)$weight[e], "\n")
+# }
 
 # Debug target identification
 target_list <- V(attack_graph)[degree(attack_graph, mode="out")==0] %>% as_ids
-cat("\nTARGET IDENTIFICATION:\n")
-cat("Found target nodes:", paste(target_list, collapse=", "), "\n")
-cat("Number of targets:", length(target_list), "\n")
+# cat("\nTARGET IDENTIFICATION:\n")
+# cat("Found target nodes:", paste(target_list, collapse=", "), "\n")
+# cat("Number of targets:", length(target_list), "\n")
 
-# Debug edge structure before contraction
-cat("\nEDGE STRUCTURE BEFORE CONTRACTION:\n")
-cat("Edges to target nodes:\n")
-for(target in target_list) {
-    incident_edges <- incident(attack_graph, target, mode="in")
-    cat("\nTarget", target, "incoming edges:\n")
-    for(e in incident_edges) {
-        from_vertex <- ends(attack_graph, e)[1]
-        cat("From:", from_vertex, "Weight:", E(attack_graph)$weight[e], "\n")
-    }
-}
+# # Debug edge structure before contraction
+# cat("\nEDGE STRUCTURE BEFORE CONTRACTION:\n")
+# cat("Edges to target nodes:\n")
+# for(target in target_list) {
+#     incident_edges <- incident(attack_graph, target, mode="in")
+#     cat("\nTarget", target, "incoming edges:\n")
+#     for(e in incident_edges) {
+#         from_vertex <- ends(attack_graph, e)[1]
+#         cat("From:", from_vertex, "Weight:", E(attack_graph)$weight[e], "\n")
+#     }
+# }
 
 # Create mapping and perform contraction
 vertexNo <- matrix(0, nrow = 1, ncol = gorder(attack_graph))
@@ -88,40 +88,40 @@ jointVertex <- gorder(attack_graph) - length(target_list) + 1
 vertexNo[,target_list] <- jointVertex
 vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
 
-cat("\nPERFORMING CONTRACTION:\n")
-cat("Using contract.vertices with mapping:\n")
-print(vertexNo)
+# cat("\nPERFORMING CONTRACTION:\n")
+# cat("Using contract.vertices with mapping:\n")
+# print(vertexNo)
 attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
 
-# Debug final structure and parallel edges
-cat("\nFINAL GRAPH STRUCTURE:\n")
-cat("Node count:", gorder(attack_graph), "\n")
-cat("Edge count:", gsize(attack_graph), "\n")
+# # Debug final structure and parallel edges
+# cat("\nFINAL GRAPH STRUCTURE:\n")
+# cat("Node count:", gorder(attack_graph), "\n")
+# cat("Edge count:", gsize(attack_graph), "\n")
 
-# Analyze parallel edges
-edge_df <- data.frame(
-    from = ends(attack_graph, E(attack_graph))[,1],
-    to = ends(attack_graph, E(attack_graph))[,2],
-    weight = E(attack_graph)$weight
-)
+# # Analyze parallel edges
+# edge_df <- data.frame(
+#     from = ends(attack_graph, E(attack_graph))[,1],
+#     to = ends(attack_graph, E(attack_graph))[,2],
+#     weight = E(attack_graph)$weight
+# )
 
-cat("\nPARALLEL EDGE ANALYSIS:\n")
-for(pair in unique(paste(edge_df$from, "->", edge_df$to))) {
-    subset <- edge_df[paste(edge_df$from, "->", edge_df$to) == pair,]
-    if(nrow(subset) > 1) {
-        cat("\nParallel edges for", pair, ":\n")
-        cat("Count:", nrow(subset), "\n")
-        cat("Weights:", paste(subset$weight, collapse=", "), "\n")
-    }
-}
+# cat("\nPARALLEL EDGE ANALYSIS:\n")
+# for(pair in unique(paste(edge_df$from, "->", edge_df$to))) {
+#     subset <- edge_df[paste(edge_df$from, "->", edge_df$to) == pair,]
+#     if(nrow(subset) > 1) {
+#         cat("\nParallel edges for", pair, ":\n")
+#         cat("Count:", nrow(subset), "\n")
+#         cat("Weights:", paste(subset$weight, collapse=", "), "\n")
+#     }
+# }
 
 
 
 #########
-# Debug print after merging
-cat("\n AFTER merging targets:\n")
-cat("Node count:", gorder(attack_graph), "\n")
-cat("Edge count:", gsize(attack_graph), "\n\n")
+# # Debug print after merging
+# cat("\n AFTER merging targets:\n")
+# cat("Node count:", gorder(attack_graph), "\n")
+# cat("Edge count:", gsize(attack_graph), "\n\n")
 
 cat("Edge structure after merging:\n")
 for(i in seq_along(E(attack_graph))) {
@@ -166,13 +166,13 @@ for(defenseRate in defenseRateList) {
     payoffsList <- NULL
 
 
-    # Add debug statements here
-    cat("\n=== Debug: Strategy Mappings ===\n")
-    cat("Defender strategies (as1):", paste(as1, collapse=", "), "\n")
-    cat("Attacker paths (as2):\n")
-    for(idx in seq_along(as2)) {
-        cat("Path", idx-1, ":", paste(as2[[idx]], collapse="->"), "\n")
-    }
+    # # Add debug statements here
+    # cat("\n=== Debug: Strategy Mappings ===\n")
+    # cat("Defender strategies (as1):", paste(as1, collapse=", "), "\n")
+    # cat("Attacker paths (as2):\n")
+    # for(idx in seq_along(as2)) {
+    #     cat("Path", idx-1, ":", paste(as2[[idx]], collapse="->"), "\n")
+    # }
     
     for(target in target_list) {
       payoffMatrix <- list()

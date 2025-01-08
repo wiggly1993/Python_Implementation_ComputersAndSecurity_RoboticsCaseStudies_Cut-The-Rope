@@ -1,26 +1,19 @@
 library(HyRiM)
 
-# Debug function to print edge information
-print_edge_info <- function(graph) {
-  edges <- as_edgelist(graph)
-  weights <- E(graph)$weight
-  probs <- E(graph)$probability
+# # Debug function to print edge information
+# print_edge_info <- function(graph) {
+#   edges <- as_edgelist(graph)
+#   weights <- E(graph)$weight
+#   probs <- E(graph)$probability
   
-  for (i in 1:nrow(edges)) {
-    prob_str <- if(!is.null(probs)) sprintf("prob=%f", probs[i]) else "prob=N/A"
-    weight_str <- if(!is.null(weights)) sprintf("weight=%f", weights[i]) else "weight=N/A"
-    cat(sprintf("DEBUG:     %s -> %s | %s, %s\n", 
-                edges[i,1], edges[i,2], prob_str, weight_str))
-  }
-}
+#   for (i in 1:nrow(edges)) {
+#     prob_str <- if(!is.null(probs)) sprintf("prob=%f", probs[i]) else "prob=N/A"
+#     weight_str <- if(!is.null(weights)) sprintf("weight=%f", weights[i]) else "weight=N/A"
+#     cat(sprintf("DEBUG:     %s -> %s | %s, %s\n", 
+#                 edges[i,1], edges[i,2], prob_str, weight_str))
+#   }
+# }
 
-# # Print initial debug information
-# cat("DEBUG: Starting graph processing...\n")
-# cat("DEBUG: Original graph info (before processing):\n")
-# cat(sprintf("DEBUG:   Number of nodes: %d\n", gorder(attack_graph)))
-# cat(sprintf("DEBUG:   Number of edges: %d\n", gsize(attack_graph)))
-# cat("DEBUG:   Edges (u -> v: probabilities, weight):\n")
-# print_edge_info(attack_graph)
 
 # Find roots
 roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
@@ -53,15 +46,6 @@ vertexNo[, target_list] <- jointVertex
 vertexNo[vertexNo == 0] <- 1:(jointVertex - 1)
 attack_graph <- contract.vertices(attack_graph, mapping = vertexNo)
 
-# # Print processed graph debug information
-# cat("DEBUG: Processed graph info (after process_graph):\n")
-# cat(sprintf("DEBUG:   Number of nodes: %d\n", gorder(attack_graph)))
-# cat(sprintf("DEBUG:   Number of edges: %d\n", gsize(attack_graph)))
-# cat(sprintf("DEBUG:   Original roots: [%s]\n", paste(roots, collapse=", ")))
-# cat(sprintf("DEBUG:   Virtual entry node (if any): %s\n", if(k > 1) entry else "None"))
-# cat("DEBUG:   Virtual target node (if any): virtual_target_node\n")
-# cat("DEBUG:   Final edges (u -> v: probabilities, weight):\n")
-# print_edge_info(attack_graph)
 
 # Continue with the rest of the processing
 node_order <- as_ids(topo_sort(attack_graph))

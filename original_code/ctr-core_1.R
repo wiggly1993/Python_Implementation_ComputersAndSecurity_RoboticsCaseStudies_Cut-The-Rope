@@ -1,20 +1,5 @@
 library(HyRiM)
 
-# # Debug function to print edge information
-# print_edge_info <- function(graph) {
-#   edges <- as_edgelist(graph)
-#   weights <- E(graph)$weight
-#   probs <- E(graph)$probability
-  
-#   for (i in 1:nrow(edges)) {
-#     prob_str <- if(!is.null(probs)) sprintf("prob=%f", probs[i]) else "prob=N/A"
-#     weight_str <- if(!is.null(weights)) sprintf("weight=%f", weights[i]) else "weight=N/A"
-#     cat(sprintf("DEBUG:     %s -> %s | %s, %s\n", 
-#                 edges[i,1], edges[i,2], prob_str, weight_str))
-#   }
-# }
-
-
 # Find roots
 roots <- V(attack_graph)[degree(attack_graph, mode="in")==0] %>% as_ids
 k <- length(roots)
@@ -64,21 +49,6 @@ n <- length(as1)
 advList <- setdiff(V, c(entry, target_list))
 Theta <- rep(1/n, times = length(advList))
 names(Theta) <- advList
-
-# cat("DEBUG: Finished graph processing.\n")
-
-# # Convert the edge data to a proper data frame with consistent types
-# final_edges_r <- as_data_frame(attack_graph, what="edges")
-
-# # Convert 'from' and 'to' columns to character type before sorting
-# final_edges_r$from <- as.character(final_edges_r$from)
-# final_edges_r$to <- as.character(final_edges_r$to)
-
-# # Now sort
-# final_edges_r <- final_edges_r[order(final_edges_r$from, final_edges_r$to), ]
-# cat("Final edges analysed!\n")
-# print(final_edges_r)
-
 
 # avoid the loops being skipped if the experiments do not define attack or defense rates to try
 if (!exists("defenseRateList")) { defenseRateList <- 0 }

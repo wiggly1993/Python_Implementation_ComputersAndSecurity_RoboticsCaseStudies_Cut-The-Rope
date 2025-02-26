@@ -27,10 +27,9 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   # cat("\nEdges found:\n")
   # print(edges)  # Simply print the edges object directly
   
-  # (Below) Added to actually see the weights. RM later ##
+
   weights <- edge_attr(attack_graph, "weight", edges)
   cat("\nEdge weights:", paste(weights, collapse=", "), "\n")
-  # (Above) Can be removed later ##
 
   hardness <- edge_attr(attack_graph, "edge_probabilities", edges)
   cat("\nRaw hardness values:", paste(hardness, collapse=", "), "\n")
@@ -38,6 +37,10 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   
   # Handle NA values
   hardness[is.na(hardness)] <- 1
+  # fix missing hardness values: if we know nothing, 
+  # we consider the edge easy (trivial) to traverse
+
+
   #cat("Hardness after NA handling:", paste(hardness, collapse=", "), "\n")
   
   # Calculate PDF components

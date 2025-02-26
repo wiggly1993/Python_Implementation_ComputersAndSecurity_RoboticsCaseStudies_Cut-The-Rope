@@ -29,7 +29,9 @@ attack_graph <- graph_from_literal(
 
 # hardness of compromising nodes
 # assign a hardness value (= probability) to reach node
-edgeProbs <- c(0.111265, 0.111265, 0.47287625, 0.47287625, 0.47287625,  0.3449215, 0.47287625, 1, 0.3449215, 0.47287625, 1, 1, 1, 0.47287625, 0.47287625, 0.47287625, 0.47287625, 0.47287625, 0.47287625, 0.47287625, 0.3449215,0.3449215, 0.3449215, 1)
+edgeProbs <- c(0.111265, 0.111265, 0.47287625, 0.47287625, 0.47287625,  0.3449215,  # nolint
+0.47287625, 1, 0.3449215, 0.47287625, 1, 1, 1, 0.47287625, 0.47287625, 0.47287625,  # nolint
+0.47287625, 0.47287625, 0.47287625, 0.47287625, 0.3449215,0.3449215, 0.3449215, 1)  # nolint
 
 
 # we add the success probability per Exploit (p_e) directly as the vertex property

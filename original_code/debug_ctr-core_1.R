@@ -166,7 +166,7 @@ for(defenseRate in defenseRateList) {
     payoffsList <- NULL
 
 
-    # # Add debug statements here
+    # # Debug statement that prints out the order of the attack paths
     # cat("\n=== Debug: Strategy Mappings ===\n")
     # cat("Defender strategies (as1):", paste(as1, collapse=", "), "\n")
     # cat("Attacker paths (as2):\n")
@@ -286,6 +286,9 @@ for(defenseRate in defenseRateList) {
             U, discrete=TRUE, dataType="pdf",
             supp=c(1,length(V)), smoothing="always", bw=0.2
           )
+          # Add this line right here:
+          # cat("The FINAL entry used in the pay off matrix (! this is what matters) is:", ld$dpdf[length(ld$dpdf)], "\n")
+
           payoffMatrix <- append(payoffMatrix, list(ld))
 
         }

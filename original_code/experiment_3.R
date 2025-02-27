@@ -29,10 +29,10 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   
 
   weights <- edge_attr(attack_graph, "weight", edges)
-  cat("\nEdge weights:", paste(weights, collapse=", "), "\n")
+  #cat("\nEdge weights:", paste(weights, collapse=", "), "\n")
 
   hardness <- edge_attr(attack_graph, "edge_probabilities", edges)
-  cat("\nRaw hardness values:", paste(hardness, collapse=", "), "\n")
+  #cat("\nRaw hardness values:", paste(hardness, collapse=", "), "\n")
 
   
   # Handle NA values
@@ -40,6 +40,9 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   # fix missing hardness values: if we know nothing, 
   # we consider the edge easy (trivial) to traverse
 
+  # Print out the hardness values
+  # print("Hardness values:")
+  # print(hardness)
 
   #cat("Hardness after NA handling:", paste(hardness, collapse=", "), "\n")
   
@@ -57,7 +60,7 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   pdfD <- pdfD / sum(pdfD)
   #cat("Final normalized PDF:", paste(pdfD, collapse=", "), "\n")
   #cat("=== End randomSteps debug ===\n\n")
-  
+  # print(paste("This is the final pdf that is returned in the end:", paste(pdfD, collapse=" ")))
   return(pdfD)
 }
 

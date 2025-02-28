@@ -28,7 +28,7 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
   return(pdfD)
 }
 
-source("ctr-core_1.R")
+source("debug_ctr-core_1.R")
 
 sink()
 file.show(outputLogFile)

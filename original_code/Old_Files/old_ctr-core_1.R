@@ -166,13 +166,13 @@ for(defenseRate in defenseRateList) {
     payoffsList <- NULL
 
 
-    # Debug statement that prints out the order of the attack paths
-    cat("\n=== Debug: Strategy Mappings ===\n")
-    cat("Defender strategies (as1):", paste(as1, collapse=", "), "\n")
-    cat("Attacker paths (as2):\n")
-    for(idx in seq_along(as2)) {
-        cat("Path", idx-1, ":", paste(as2[[idx]], collapse="->"), "\n")
-    }
+    # # Debug statement that prints out the order of the attack paths
+    # cat("\n=== Debug: Strategy Mappings ===\n")
+    # cat("Defender strategies (as1):", paste(as1, collapse=", "), "\n")
+    # cat("Attacker paths (as2):\n")
+    # for(idx in seq_along(as2)) {
+    #     cat("Path", idx-1, ":", paste(as2[[idx]], collapse="->"), "\n")
+    # }
     
     for(target in target_list) {
       payoffMatrix <- list()
@@ -225,15 +225,39 @@ for(defenseRate in defenseRateList) {
               route_subset <- route[1:cutPoint]
               L[route_subset] <- payoffDistr
               
+              #cat("Route subset:", paste(route_subset, collapse="->"), "\n")
+              #cat("L distribution for this avatar (BEFORE weighting by Theta):\n")
+              #for(idx_l in seq_along(L)) {
+              #  if(abs(L[idx_l]) > 1e-15) {
+              #    cat("  Node", names(L)[idx_l], ":", L[idx_l], "\n")
+              #  }
+              #}
               
             } else {
               # If avatar not on path, stays at its location (prob=1)
               L[avatar] <- 1
+              #cat("\nProcessing avatar", avatar, "(not in path):\n")
+              #cat("L[", avatar, "] = 1.0\n")
             }
             
             #cat("\nTheta[", avatar, "] =", Theta[avatar], "\n")
             U <- U + Theta[avatar] * L
+            #cat("Current U after adding this avatar's contribution:\n")
+            #for(idx_u in seq_along(U)) {
+            #  if(abs(U[idx_u]) > 1e-10) {
+            #    cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
+            #  }
+            #}
           }
+          
+          #cat("\n--- Aggregated U for check =", i, 
+          #    ", path =", paste(path, collapse="->"),
+          #    " (BEFORE normalization) ---\n")
+          #for(idx_u in seq_along(U)) {
+          #  if(abs(U[idx_u]) > 1e-10) {
+          #    cat("  Node", names(U)[idx_u], ":", U[idx_u], "\n")
+          #  }
+          #}
           
           # Normalize U
           if(sum(U) < 1e-15) {
@@ -244,11 +268,26 @@ for(defenseRate in defenseRateList) {
             U[U < 1e-7] <- 1e-7
           }
           U <- U[node_order]
+          
+          # cat("\n--- Normalized U for check =", i,
+          #     ", path =", paste(path, collapse="->"), "---\n")
+          # for(idx_u2 in seq_along(U)) {
+          #   if(abs(U[idx_u2]) > 1e-10) {
+          #     cat("  Node", names(U)[idx_u2], ":", U[idx_u2], "\n")
+          #   }
+          # }
+          
+          # Create final distribution object for this (i, path)
+          # cat("Pre-lossDistribution U for check=", i, 
+          # ", path=", paste(path, collapse="->"), 
+          # ":", paste(U, collapse=", "), "\n")
 
           ld <- lossDistribution(
             U, discrete=TRUE, dataType="pdf",
             supp=c(1,length(V)), smoothing="always", bw=0.2
           )
+          # Add this line right here:
+          # cat("The FINAL entry used in the pay off matrix (! this is what matters) is:", ld$dpdf[length(ld$dpdf)], "\n")
 
           payoffMatrix <- append(payoffMatrix, list(ld))
 

@@ -36,7 +36,7 @@ randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
 }
 # imports the entire file and since this is done in R it will probably execute some
 # code. Import R literally executes every line as long as it can be executed.
-source("ctr-core_1.R")
+source("debug_ctr-core_1.R")
 
 # This STOPS the redirection into the log file
 sink()

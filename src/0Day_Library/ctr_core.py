@@ -24,8 +24,26 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-# Global configuration
-DEFAULT_WEIGHT_VALUE = 0
+
+DEFAULT_WEIGHT_VALUE = 0  # Default fallback value
+
+def core_set_default_weight(value):
+    """Set the default weight value for the entire module."""
+    global DEFAULT_WEIGHT_VALUE
+    DEFAULT_WEIGHT_VALUE = value
+    print(f"Default weight value set to: {DEFAULT_WEIGHT_VALUE}")
+
+
+
+# Add this near the top of ctr_core.py with other global variables
+DEBUG_MODE = False  # Global debug flag
+
+def core_set_debug_mode(enabled=False):
+    """Toggle debug output on or off."""
+    global DEBUG_MODE
+    DEBUG_MODE = enabled
+
+
 
 def find_and_add_entry_node(graph):
     """
@@ -301,14 +319,15 @@ def solve_game(payoffs, as1, as2):
             payoff_matrix[i, j] = ld['dpdf'][-1]
 
     # Log payoff matrix
-    logger.info("\n=== Final Payoff Matrix ===")
-    logger.info(f"Matrix dimensions: {n} x {m}\n")
-    logger.info("Payoff Matrix (probability of reaching target):")
-    for i in range(n):
-        row_str = f"Row {i+1:2d}:"
-        for j in range(m):
-            row_str += f" {payoff_matrix[i,j]:8.6f}"
-        logger.info(row_str)
+    if DEBUG_MODE:
+        logger.info("\n=== Final Payoff Matrix ===")
+        logger.info(f"Matrix dimensions: {n} x {m}\n")
+        logger.info("Payoff Matrix (probability of reaching target):")
+        for i in range(n):
+            row_str = f"Row {i+1:2d}:"
+            for j in range(m):
+                row_str += f" {payoff_matrix[i,j]:8.6f}"
+            logger.info(row_str)
     
     ### Defender's optimization
     c = np.zeros(n+1)
@@ -386,6 +405,10 @@ def print_debug_info(graph, stage=""):
         graph: NetworkX graph to examine
         stage: Label for this debug stage
     """
+
+    if not DEBUG_MODE: 
+        return
+
     logger.info(f"\n{stage}:")
     logger.info(f"Nodes: {list(graph.nodes())}")
     logger.info("Total list of Edges with their weights:")

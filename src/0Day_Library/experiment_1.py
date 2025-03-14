@@ -13,18 +13,37 @@ from scipy.stats import poisson
 
 # Import ctr library components
 from attack_graph_MARA import create_mara_attack_graph
+from attack_graph_MARA import mara_set_default_weight
+
 from create_subgraphs import generate_defender_subgraphs
+
 from ctr_core import main 
+from ctr_core import core_set_default_weight
+from ctr_core import core_set_debug_mode
 
 # Toggle to control execution mode
 # True = standard calculation, False = includes subgraph analysis
 RUN_BASELINE_ONLY = True  
+
+# Set default weight values for MARA and core modules
+# we are setting it to 0 because of hardness = exp(-w) which gives us
+# hardness = 1 (trivial edge) for w = 0 
 DEFAULT_WEIGHT_VALUE = 0
+
+mara_set_default_weight(DEFAULT_WEIGHT_VALUE)
+core_set_default_weight(DEFAULT_WEIGHT_VALUE)
+
+
+# Disable or enable debug mode
+# Debug mode: shows some information about the edges in the graphs
+# and additionally the payoff matrix
+core_set_debug_mode(False)
 
 # Define experiment name as a variable for easy modification
 experiment_name = "experiment_1"
 
-# Set up logging configuration
+######################## Set up logging configuration ########################
+################################################################################
 def setup_logging():
     # Set up main logger
     log_path = os.path.join(os.getcwd(), f'{experiment_name}.log')
@@ -51,7 +70,8 @@ def setup_logging():
     return logger, handler, subgraph_handler
 
 
-# Define random steps function for attacker movement
+######## Define random steps function for attacker movement ###################
+################################################################################
 def random_steps(route, attack_rate=None, defense_rate=None, graph=None):
     """
     Calculate probability distribution for random steps using Poisson distribution.
@@ -74,10 +94,14 @@ def random_steps(route, attack_rate=None, defense_rate=None, graph=None):
     pmf = pmf / pmf.sum()
     return pmf
 
+
+################################ run_experiment ################################
+################################################################################
+
 def run_experiment():
     """Run the core analysis with configured parameters."""
     # Create attack graph
-    full_attack_graph, node_order = create_mara_attack_graph()
+    full_attack_graph, node_order = create_mara_attack_graph(DEFAULT_WEIGHT_VALUE)
     
     # Generate defender subgraphs
     defender_subgraphs_list = generate_defender_subgraphs(

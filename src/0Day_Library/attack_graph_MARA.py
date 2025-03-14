@@ -5,16 +5,16 @@ This module provides the MARA attack graph for security analysis.
 import networkx as nx  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 
-# Import DEFAULT_WEIGHT_VALUE from wherever it's defined
-# If it fails, we'll use a fallback value
-try:
-    from ctr_library.core import DEFAULT_WEIGHT_VALUE
-except ImportError:
-    # Define a fallback default value
-    DEFAULT_WEIGHT_VALUE = 0
+DEFAULT_WEIGHT_VALUE = 0  # Default fallback value
+
+def mara_set_default_weight(value):
+    """Set the default weight value for the entire module."""
+    global DEFAULT_WEIGHT_VALUE
+    DEFAULT_WEIGHT_VALUE = value
+    print(f"Default weight value in MARA is set to: {DEFAULT_WEIGHT_VALUE}")
 
 
-def create_mara_attack_graph():
+def create_mara_attack_graph(DEFAULT_WEIGHT_VALUE=DEFAULT_WEIGHT_VALUE):
     """
     Create a directed graph based on the MARA structure.
     
@@ -44,6 +44,6 @@ def create_mara_attack_graph():
     return graph, node_order
 
 
-# Create the graph and node order (for backward compatibility)
-attack_graph, node_order = create_mara_attack_graph()
-print("Successfully created MARA attack graph.")
+# # Create the graph and node order (for backward compatibility)
+# attack_graph, node_order = create_mara_attack_graph()
+# print("Successfully created MARA attack graph.")

@@ -18,8 +18,8 @@ print(date())
 source(file = "attack_graph_MIR100.R")
 
 # let the defender move slower (lamdba=1), equally fast (lambda=2) or faster (lambda=3)
-defenseRateList <- c(1,2,3) # parameter lambda_D
-# defenseRateList <- c(1)
+# defenseRateList <- c(1,2,3) # parameter lambda_D
+defenseRateList <- c(1)
 
 # random steps determined by hardness, within a random time frame dictated by the defender's idleness periods
 randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {

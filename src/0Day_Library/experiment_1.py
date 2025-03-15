@@ -14,8 +14,10 @@ from scipy.stats import poisson
 # Import ctr library components
 from attack_graph_MARA import create_mara_attack_graph
 from attack_graph_MARA import mara_set_default_weight
+from attack_graph_MARA import plot_main_graph
 
 from create_subgraphs import generate_defender_subgraphs
+from create_subgraphs import visualize_subgraphs
 
 from ctr_core import main 
 from ctr_core import core_set_default_weight
@@ -37,7 +39,12 @@ core_set_default_weight(DEFAULT_WEIGHT_VALUE)
 # Disable or enable debug mode
 # Debug mode: shows some information about the edges in the graphs
 # and additionally the payoff matrix
-core_set_debug_mode(False)
+debug_mode = False
+#set this in the ctr-core module as global variable
+core_set_debug_mode(debug_mode)
+
+# Set image mode to True to show plots of the graphs
+image_mode = False
 
 # Define experiment name as a variable for easy modification
 experiment_name = "experiment_1"
@@ -102,11 +109,15 @@ def run_experiment():
     """Run the core analysis with configured parameters."""
     # Create attack graph
     full_attack_graph, node_order = create_mara_attack_graph(DEFAULT_WEIGHT_VALUE)
-    
+
     # Generate defender subgraphs
     defender_subgraphs_list = generate_defender_subgraphs(
         full_attack_graph, num_subgraphs=5, drop_percentage=0.2
     )
+
+    if image_mode:
+        plot_main_graph(full_attack_graph)
+        visualize_subgraphs(defender_subgraphs_list, full_attack_graph)
     
     # Set attack and defense parameters
     attack_rate_list = [2]  

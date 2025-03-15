@@ -9,6 +9,7 @@ for defenders.
 import random
 import networkx as nx
 from copy import deepcopy
+import matplotlib.pyplot as plt
 
 def clean_subgraph(sub_graph, original_graph):
     """
@@ -138,8 +139,87 @@ def generate_defender_subgraphs(attack_graph, num_subgraphs=100, drop_percentage
             for _ in range(num_subgraphs)]
 
 
-# from attack_graph_MARA import create_mara_attack_graph
+def visualize_subgraphs(subgraph_list, original_graph=None):
+    """
+    Visualizes the last 3 defender's subgraphs side by side.
+    """
 
-# attack_graph, node_order = create_mara_attack_graph()
-
-# generate_defender_subgraphs(attack_graph, num_subgraphs=5, drop_percentage=0.2)
+    # Take only the last 3 graphs
+    graphs_to_show = subgraph_list[-3:] if len(subgraph_list) >= 3 else subgraph_list
+    num_graphs = len(graphs_to_show)
+    
+    # Create subplot figure
+    fig, axes = plt.subplots(1, num_graphs, figsize=(6*num_graphs, 6))
+    
+    # Handle case when only one graph (axes not array)
+    if num_graphs == 1:
+        axes = [axes]
+    
+    # Identify original target nodes from the original graph
+    orig_graph = original_graph if original_graph else subgraph_list[0][0]
+    original_target_nodes = [n for n, d in orig_graph.out_degree() if d == 0]
+    
+    for i, (subgraph, dropped_nodes) in enumerate(graphs_to_show):
+        # Calculate cleaned up nodes (nodes that were removed during the clean_subgraph process)
+        # These are nodes that were in the subgraph after dropping but removed during cleaning
+        # We need to infer this from the original graph and the current subgraph
+        
+        # First get all nodes from original graph
+        all_original_nodes = set(orig_graph.nodes())
+        # Then get the dropped nodes (from the function output)
+        dropped_node_set = set(dropped_nodes)
+        # Get current subgraph nodes
+        current_nodes = set(subgraph.nodes())
+        
+        # Cleaned up nodes = nodes that should be in subgraph after dropping but aren't
+        # i.e., (all original nodes - dropped nodes) - current nodes
+        expected_nodes = all_original_nodes - dropped_node_set
+        cleaned_up_nodes = expected_nodes - current_nodes
+        
+        # Identify entry nodes in subgraph (excluding original target nodes)
+        entry_nodes = [n for n, d in subgraph.in_degree() if d == 0 and n not in original_target_nodes]
+        
+        # Use spring layout
+        pos = nx.spring_layout(subgraph, k=1, iterations=50, seed=42)
+        
+        # Draw edges with arrows
+        nx.draw_networkx_edges(subgraph, pos, 
+                              edge_color='gray',
+                              arrows=True,
+                              arrowsize=15,
+                              width=1.5,
+                              ax=axes[i])
+        
+        # Create color map for nodes - targets are ALWAYS red regardless of connectivity
+        node_colors = []
+        for node in subgraph.nodes():
+            if node in original_target_nodes:
+                node_colors.append('lightcoral')  # Target nodes always red
+            elif node in entry_nodes:
+                node_colors.append('lightgreen')  # Entry nodes (non-targets) green
+            else:
+                node_colors.append('lightblue')   # Regular nodes blue
+        
+        # Draw nodes
+        nx.draw_networkx_nodes(subgraph, pos,
+                              node_color=node_colors,
+                              node_size=500,
+                              edgecolors='darkblue',
+                              linewidths=1.5,
+                              ax=axes[i])
+        
+        # Create and draw labels
+        labels = {node: str(node) for node in subgraph.nodes()}
+        nx.draw_networkx_labels(subgraph, pos,
+                               labels,
+                               font_size=10,
+                               font_weight='bold',
+                               ax=axes[i])
+        
+        # Update title to include information about dropped nodes and cleaned up nodes
+        axes[i].set_title(f"Defender's Subgraph {i+1}\nDropped: {dropped_nodes}\nCleaned up: {sorted(list(cleaned_up_nodes))}", 
+                          fontsize=12, fontweight='bold')
+        axes[i].axis('off')
+    
+    plt.tight_layout()
+    plt.show()

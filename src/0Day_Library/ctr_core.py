@@ -599,6 +599,8 @@ def main(full_attack_graph, defender_subgraphs_list=None, attack_rate_list=None,
             return baseline_result, attacker_success_values, avg_attacker_success
     
     return baseline_result
+
+
 if __name__ == "__main__":
     pass
 

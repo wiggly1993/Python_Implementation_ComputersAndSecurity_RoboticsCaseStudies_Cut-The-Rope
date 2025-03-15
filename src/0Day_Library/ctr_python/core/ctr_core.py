@@ -31,7 +31,7 @@ def core_set_default_weight(value):
     """Set the default weight value for the entire module."""
     global DEFAULT_WEIGHT_VALUE
     DEFAULT_WEIGHT_VALUE = value
-    print(f"Default weight value set to: {DEFAULT_WEIGHT_VALUE}")
+    #print(f"Default weight value set to: {DEFAULT_WEIGHT_VALUE}")
 
 
 

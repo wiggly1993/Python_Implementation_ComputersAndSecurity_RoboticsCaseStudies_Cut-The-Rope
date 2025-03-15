@@ -24,11 +24,11 @@ def clean_subgraph(sub_graph, original_graph):
     
     # STEP 1: Identify LEGITIMATE target nodes from ORIGINAL graph
     original_targets = [n for n, d in original_graph.out_degree() if d == 0]
-    print(f"Original legitimate targets: {original_targets}")
+    #print(f"Original legitimate targets: {original_targets}")
     
     # STEP 2: Find which of these legitimate targets are still in our subgraph
     existing_targets = [t for t in original_targets if t in cleaned_graph]
-    print(f"Remaining legitimate targets in subgraph: {existing_targets}")
+    #print(f"Remaining legitimate targets in subgraph: {existing_targets}")
     
     if not existing_targets:
         print("Warning: No legitimate targets remain in subgraph!")
@@ -54,7 +54,7 @@ def clean_subgraph(sub_graph, original_graph):
     
     # STEP 4: Remove unreachable nodes
     nodes_to_remove = set(cleaned_graph.nodes()) - reachable_nodes
-    print(f"Removing {len(nodes_to_remove)} unreachable nodes: {nodes_to_remove}")
+    #print(f"Removing {len(nodes_to_remove)} unreachable nodes: {nodes_to_remove}")
     
     for node in nodes_to_remove:
         cleaned_graph.remove_node(node)
@@ -83,8 +83,8 @@ def create_defender_subgraph(graph, drop_percentage=0.2):
     # Make a deep copy to avoid modifying the original
     sub_graph = deepcopy(graph)
 
-    print(f"++++++++++++++++++++++++++++++++++++++++")
-    print(f"Start dropping & cleanup for the next subgraph here")
+    #print(f"++++++++++++++++++++++++++++++++++++++++")
+    #print(f"Start dropping & cleanup for the next subgraph here")
     # Identify target nodes (nodes with no outgoing edges)
     target_nodes = []
     for n, d in sub_graph.out_degree():

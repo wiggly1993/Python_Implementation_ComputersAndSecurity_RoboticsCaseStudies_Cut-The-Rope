@@ -12,7 +12,7 @@ def mara_set_default_weight(value):
     """Set the default weight value for the entire module."""
     global DEFAULT_WEIGHT_VALUE
     DEFAULT_WEIGHT_VALUE = value
-    print(f"Default weight value in MARA is set to: {DEFAULT_WEIGHT_VALUE}")
+    #print(f"Default weight value in MARA is set to: {DEFAULT_WEIGHT_VALUE}")
 
 
 def create_mara_attack_graph(DEFAULT_WEIGHT_VALUE=DEFAULT_WEIGHT_VALUE):

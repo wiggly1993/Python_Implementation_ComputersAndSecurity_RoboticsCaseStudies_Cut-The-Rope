@@ -14,9 +14,9 @@ from datetime import datetime
 from scipy.stats import poisson
 
 # Import ctr library components
-from ..graphs.attack_graph_MARA import create_mara_attack_graph
-from ..graphs.attack_graph_MARA import mara_set_default_weight
-from ..graphs.attack_graph_MARA import plot_main_graph
+from ..graphs.attack_graph_MIR100 import create_mir100_attack_graph
+from ..graphs.attack_graph_MIR100 import mir100_set_default_weight
+from ..graphs.attack_graph_MIR100 import plot_main_graph
 
 from ..core.create_subgraphs import generate_defender_subgraphs
 from ..core.create_subgraphs import visualize_subgraphs
@@ -30,8 +30,8 @@ DEFAULT_WEIGHT_VALUE = 0
 RUN_BASELINE_ONLY = True  # Default is to run only baseline 
 DEFAULT_DEBUG_MODE = False
 DEFAULT_IMAGE_MODE = False
-DEFAULT_ATTACK_RATES = [3]
-DEFAULT_DEFENSE_RATES = [3]
+DEFAULT_ATTACK_RATES = [0]
+DEFAULT_DEFENSE_RATES = [0]
 DEFAULT_NUM_SUBGRAPHS = 100
 DEFAULT_DROP_PERCENTAGE = 0.2
 
@@ -64,7 +64,7 @@ args = parse_args()
 RUN_BASELINE_ONLY = not args.run_0day
 
 # Set default weight values for MARA and core modules
-mara_set_default_weight(DEFAULT_WEIGHT_VALUE)
+mir100_set_default_weight(DEFAULT_WEIGHT_VALUE)
 core_set_default_weight(DEFAULT_WEIGHT_VALUE)
 
 # Use command-line args or defaults
@@ -75,7 +75,7 @@ core_set_debug_mode(debug_mode)
 image_mode = args.image_mode if args.image_mode is not None else DEFAULT_IMAGE_MODE
 
 # Define experiment name as a variable for easy modification
-experiment_name = "experiment_2"
+experiment_name = "experiment_3"
 
 ######################## Set up logging configuration ########################
 ################################################################################
@@ -114,14 +114,84 @@ def setup_logging():
 
 ######## Define random steps function for attacker movement ###################
 ################################################################################
+
 def random_steps(route, attack_rate=None, defense_rate=None, graph=None):
-    """Geometric distribution for randomly moving defender"""
-    # What is the prob that defender checks before attacker can make the next move?
-    p = defense_rate / (attack_rate + defense_rate)
-    x = np.arange(len(route))
-    pmf = p * np.power(1-p, x)
-    pmf = pmf / pmf.sum()
-    return pmf
+    """
+    Calculates probabilities for attacker movement along route.
+    Returns probability distribution over possible ending nodes.
+    """
+
+    # Part 1: Extract hardness values from all edges and append them
+    # into one numpy array
+    # Calculate hardness values for each edge 
+    hardness = []
+    for i in range(len(route) - 1):
+        start_node = route[i]
+        end_node = route[i + 1]
+        
+        # Initialize variables for max weight loop
+        weights = []
+        # Collect all weights for max
+        for edge in graph[start_node][end_node].values():
+            weights.append(edge.get('weight', DEFAULT_WEIGHT_VALUE))
+        # Get maximum weight
+        max_weight = max(weights) if weights else DEFAULT_WEIGHT_VALUE
+        
+        # Initialize variables for min weight loop
+        min_weights = []
+        # Collect all weights for min
+        for edge in graph[start_node][end_node].values():
+            min_weights.append(edge.get('weight', DEFAULT_WEIGHT_VALUE))
+        # Get minimum weight
+        min_weight = min(min_weights) if min_weights else DEFAULT_WEIGHT_VALUE
+            
+        # Convert weights to probabilities
+        # We could take max_weight or min_weight here
+        # hardness.append(np.exp(-max_weight))
+
+        # Important: We use min_weight here because of the following reason:
+        # Since the formula to calculate hardness in R is hardness = exp(-weight)
+        # taking the minimum weight will give us the maximum hardness
+        # which translates to the path being EASIEST to traverse.
+        # Yes hardness of 1 means path is trivial, hardness 0 means path is impossible
+        hardness.append(np.exp(-min_weight))
+
+    
+    
+    hardness = np.array(hardness)
+
+    # print(f'Hardness: {hardness}')
+
+    
+    ## Part 2: Based on the extracted hardness values
+    ## Calculate Movement Probabilities
+
+    # We calculate two things:
+    # 1. Probability of reaching each node (accumulating hardness along the way)
+    # Example: if hardness = [0.8, 0.6, 0.4]
+    # Then cumprod gives us: [0.8, 0.8*0.6, 0.8*0.6*0.4]
+    # Final cumulative_probs = [1.0, 0.8, 0.48, 0.192]
+    cumulative_probs = np.concatenate(([1.0], np.cumprod(hardness)))
+
+    # 2. Probability of stopping at each node (based on the next edge's hardness)
+    stop_probs = np.concatenate((1 - hardness, [1.0]))
+
+    ## Part 3: Generate Final Distribution
+    # Combine reaching and stopping probabilities to get probability of stopping at each node
+    # Example calculation with above values:
+    # Node0: 1.0 * 0.2 = 0.2    (20% chance of stopping at start)
+    # Node1: 0.8 * 0.4 = 0.32   (32% chance of stopping at Node1)
+    # Node2: 0.48 * 0.6 = 0.288 (28.8% chance of stopping at Node2)
+    # Node3: 0.192 * 1.0 = 0.192 (19.2% chance of reaching final node)
+    pdf = cumulative_probs * stop_probs
+
+    # Handle case where probabilities are essentially zero
+    if pdf.sum() < 1e-15:
+        pdf = np.full_like(pdf, 1e-7)
+
+    # Normalize to ensure probabilities sum to 1
+    # print(f"This is the final pdf that is returned in the end: {pdf / pdf.sum()}")
+    return pdf / pdf.sum()
 
 
 ################################ run_experiment ################################
@@ -130,7 +200,7 @@ def random_steps(route, attack_rate=None, defense_rate=None, graph=None):
 def run_experiment(logger=None, main_handler=None, subgraph_handler=None):
     """Run the core analysis with configured parameters."""
     # Create attack graph
-    full_attack_graph, node_order = create_mara_attack_graph(DEFAULT_WEIGHT_VALUE)
+    full_attack_graph, node_order = create_mir100_attack_graph(DEFAULT_WEIGHT_VALUE)
 
     # Parse subgraph parameters from command line or use defaults
     num_subgraphs = args.num_subgraphs if args.num_subgraphs is not None else DEFAULT_NUM_SUBGRAPHS

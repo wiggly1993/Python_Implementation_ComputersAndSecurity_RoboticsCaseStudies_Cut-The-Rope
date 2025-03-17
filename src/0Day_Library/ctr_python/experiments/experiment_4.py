@@ -14,9 +14,9 @@ from datetime import datetime
 from scipy.stats import poisson
 
 # Import ctr library components
-from ..graphs.attack_graph_MARA import create_mara_attack_graph
-from ..graphs.attack_graph_MARA import mara_set_default_weight
-from ..graphs.attack_graph_MARA import plot_main_graph
+from ..graphs.attack_graph_MIR100 import create_mir100_attack_graph
+from ..graphs.attack_graph_MIR100 import mir100_set_default_weight
+from ..graphs.attack_graph_MIR100 import plot_main_graph
 
 from ..core.create_subgraphs import generate_defender_subgraphs
 from ..core.create_subgraphs import visualize_subgraphs
@@ -30,7 +30,7 @@ DEFAULT_WEIGHT_VALUE = 0
 RUN_BASELINE_ONLY = True  # Default is to run only baseline 
 DEFAULT_DEBUG_MODE = False
 DEFAULT_IMAGE_MODE = False
-DEFAULT_ATTACK_RATES = [3]
+DEFAULT_ATTACK_RATES = [None]
 DEFAULT_DEFENSE_RATES = [3]
 DEFAULT_NUM_SUBGRAPHS = 100
 DEFAULT_DROP_PERCENTAGE = 0.2
@@ -64,7 +64,7 @@ args = parse_args()
 RUN_BASELINE_ONLY = not args.run_0day
 
 # Set default weight values for MARA and core modules
-mara_set_default_weight(DEFAULT_WEIGHT_VALUE)
+mir100_set_default_weight(DEFAULT_WEIGHT_VALUE)
 core_set_default_weight(DEFAULT_WEIGHT_VALUE)
 
 # Use command-line args or defaults
@@ -75,7 +75,7 @@ core_set_debug_mode(debug_mode)
 image_mode = args.image_mode if args.image_mode is not None else DEFAULT_IMAGE_MODE
 
 # Define experiment name as a variable for easy modification
-experiment_name = "experiment_2"
+experiment_name = "experiment_3"
 
 ######################## Set up logging configuration ########################
 ################################################################################
@@ -115,13 +115,85 @@ def setup_logging():
 ######## Define random steps function for attacker movement ###################
 ################################################################################
 def random_steps(route, attack_rate=None, defense_rate=None, graph=None):
-    """Geometric distribution for randomly moving defender"""
-    # What is the prob that defender checks before attacker can make the next move?
-    p = defense_rate / (attack_rate + defense_rate)
-    x = np.arange(len(route))
-    pmf = p * np.power(1-p, x)
-    pmf = pmf / pmf.sum()
-    return pmf
+    """
+    Calculates probabilities for attacker movement along route.
+    Returns probability distribution over possible ending nodes.
+    """
+
+    # Part 1: Extract hardness values from all edges and append them
+    # into one numpy array
+    # Calculate hardness values for each edge 
+    hardness = []
+    for i in range(len(route) - 1):
+        start_node = route[i]
+        end_node = route[i + 1]
+        
+        # Initialize variables for max weight loop
+        weights = []
+        # Collect all weights for max
+        for edge in graph[start_node][end_node].values():
+            weights.append(edge.get('weight', DEFAULT_WEIGHT_VALUE))
+        # Get maximum weight
+        max_weight = max(weights) if weights else DEFAULT_WEIGHT_VALUE
+        
+        # Initialize variables for min weight loop
+        min_weights = []
+        # Collect all weights for min
+        for edge in graph[start_node][end_node].values():
+            min_weights.append(edge.get('weight', DEFAULT_WEIGHT_VALUE))
+        # Get minimum weight
+        min_weight = min(min_weights) if min_weights else DEFAULT_WEIGHT_VALUE
+            
+        # Convert weights to probabilities
+        # We could take max_weight or min_weight here
+        # hardness.append(np.exp(-max_weight))
+
+        # Important: We use min_weight here because of the following reason:
+        # Since the formula to calculate hardness in R is hardness = exp(-weight)
+        # taking the minimum weight will give us the maximum hardness
+        # which translates to the path being EASIEST to traverse.
+        # Yes hardness of 1 means path is trivial, hardness 0 means path is impossible
+        hardness.append(np.exp(-min_weight))
+
+    
+    # Convert to arrays
+    hardness = np.array(hardness)
+
+    # print(f'Hardness: {hardness}')
+    
+    # Calculate attack rate using geometric mean if not provided
+    if attack_rate is None:
+        # Geometric mean function (mirrors the R geomean function)
+        def geom_mean(x):
+            # I filter out zeros to avoid log(0)
+            positive_values = x[x > 0]
+            if len(positive_values) == 0:
+                return 1  # Default if all values are zero or array is empty
+            return np.exp(np.mean(np.log(positive_values)))
+        
+        attack_rate = 1 / geom_mean(hardness)
+    
+    # Calculate probability distribution using geometric distribution
+    # Equivalent to R's dgeom function
+    prob = attack_rate / (attack_rate + defense_rate)
+    
+    # Create range of values from 0 to length(route)-1
+    x_values = np.arange(len(route))
+    
+    # Calculate probability mass function (pmf) for geometric distribution
+    # pdf_d = geom.pmf(x_values, prob)
+    pdf_d = prob * (1-prob)**x_values
+    
+    # Normalize to ensure probabilities sum to 1
+    pdf_d = pdf_d / np.sum(pdf_d)
+    
+    # print(f"This is the final pdf that is returned in the end: {pdf_d}")
+    return pdf_d
+
+# Example usage:
+# route = [1, 2, 3, 4]
+# defense_rate = 2
+# pdf = random_steps(route, attack_graph=G, defense_rate=defense_rate)
 
 
 ################################ run_experiment ################################
@@ -130,7 +202,7 @@ def random_steps(route, attack_rate=None, defense_rate=None, graph=None):
 def run_experiment(logger=None, main_handler=None, subgraph_handler=None):
     """Run the core analysis with configured parameters."""
     # Create attack graph
-    full_attack_graph, node_order = create_mara_attack_graph(DEFAULT_WEIGHT_VALUE)
+    full_attack_graph, node_order = create_mir100_attack_graph(DEFAULT_WEIGHT_VALUE)
 
     # Parse subgraph parameters from command line or use defaults
     num_subgraphs = args.num_subgraphs if args.num_subgraphs is not None else DEFAULT_NUM_SUBGRAPHS

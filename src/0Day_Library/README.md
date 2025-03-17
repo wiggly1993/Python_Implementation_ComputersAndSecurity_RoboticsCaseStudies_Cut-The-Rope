@@ -32,7 +32,7 @@ Run the baseline analysis:
 python -m ctr_python.experiments.experiment_1
 ```
 
-### Advanced Options
+### Advanced Options (as of now works only for the 2 graphs from the R implementation)
 
 ```bash
 # Run with custom attack and defense rates

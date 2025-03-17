@@ -27,7 +27,7 @@ from ..core.ctr_core import core_set_debug_mode
 
 # Default values - all defaults are defined here and used consistently throughout the code
 DEFAULT_WEIGHT_VALUE = 0
-RUN_BASELINE_ONLY = True  # Default is to run only baseline (changed as requested)
+RUN_BASELINE_ONLY = True  # Default is to run only baseline 
 DEFAULT_DEBUG_MODE = False
 DEFAULT_IMAGE_MODE = False
 DEFAULT_ATTACK_RATES = [2]

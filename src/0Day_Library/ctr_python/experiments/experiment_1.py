@@ -82,8 +82,7 @@ experiment_name = "experiment_1"
 def setup_logging():
     """Set up logging with files stored in a dedicated logs directory."""
     # Create logs directory if it doesn't exist
-    logs_dir = pathlib.Path.cwd() / 'logs'
-    logs_dir.mkdir(exist_ok=True)
+    logs_dir = pathlib.Path.cwd()
     
     # Define log file paths
     main_log_path = logs_dir / f'{experiment_name}.log'
@@ -190,7 +189,7 @@ def run_experiment(logger=None, main_handler=None, subgraph_handler=None):
         for hdlr in logger.handlers[:]:
             logger.removeHandler(hdlr)
         logger.addHandler(subgraph_handler)
-        logger.info(f'[1] "{pathlib.Path.cwd() / "logs" / f"sub_{experiment_name}.log"}"')
+        logger.info(f'[1] "{pathlib.Path.cwd() / f"sub_{experiment_name}.log"}"')
         logger.info(f'[1] "{datetime.now().strftime("%a %b %d %H:%M:%S %Y")}"')
         
         print("Running subgraph analysis...")
@@ -208,7 +207,7 @@ def run_experiment(logger=None, main_handler=None, subgraph_handler=None):
 # In case I want to print out the results from the .log file in the terminal
 def display_results():
     """Display the results from the log file."""
-    logs_dir = pathlib.Path.cwd() / 'logs'
+    logs_dir = pathlib.Path.cwd()
     main_log_path = logs_dir / f'{experiment_name}.log'
     
     with open(main_log_path, 'r') as f:

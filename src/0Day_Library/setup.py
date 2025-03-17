@@ -17,10 +17,10 @@ setup(
     ],
     python_requires=">=3.10",
     install_requires=[
-        "networkx==3.4.2",
-        "numpy==2.1.2",
-        "scipy==1.14.1",
-        "matplotlib==3.9.2",
+        "networkx>=3.2.1",  
+        "numpy>=2.0.0",     
+        "scipy>=1.12.0",    
+        "matplotlib>=3.8.0" 
     ],
     include_package_data=True,
 )

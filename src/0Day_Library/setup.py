@@ -15,7 +15,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.10",
+    python_requires=">=3.9",
     install_requires=[
         "networkx>=3.2.1",  
         "numpy>=2.0.0",     

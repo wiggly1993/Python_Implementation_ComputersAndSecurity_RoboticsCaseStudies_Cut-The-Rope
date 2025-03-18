@@ -13,7 +13,6 @@ import argparse
 from datetime import datetime
 from scipy.stats import poisson
 
-# Import ctr library components
 from ..graphs.attack_graph_MIR100 import create_mir100_attack_graph
 from ..graphs.attack_graph_MIR100 import mir100_set_default_weight
 from ..graphs.attack_graph_MIR100 import plot_main_graph
@@ -35,7 +34,6 @@ DEFAULT_DEFENSE_RATES = [3]
 DEFAULT_NUM_SUBGRAPHS = 100
 DEFAULT_DROP_PERCENTAGE = 0.2
 
-# Add command-line argument parsing
 def parse_args():
     parser = argparse.ArgumentParser(description='Experiment 1: Attack Graph Analysis')
     
@@ -54,7 +52,6 @@ def parse_args():
     
     return parser.parse_args()
 
-# Parse command-line arguments
 args = parse_args()
 
 # Toggle to control execution mode - now with reversed logic as requested

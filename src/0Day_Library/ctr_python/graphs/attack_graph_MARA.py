@@ -27,7 +27,7 @@ def create_mara_attack_graph(DEFAULT_WEIGHT_VALUE=DEFAULT_WEIGHT_VALUE):
     # Create a directed graph
     graph = nx.DiGraph()
     
-    # Define edges according to the original R code's structure
+    # Define edges exactly as they were in the R implementation
     edges = [
         (1, 2),                  # 1 -> 2
         (2, 3), (2, 4), (2, 5),  # 2 -> 3,4,5 

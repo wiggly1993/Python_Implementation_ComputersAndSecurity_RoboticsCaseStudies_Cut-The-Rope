@@ -13,7 +13,7 @@ import argparse
 from datetime import datetime
 from scipy.stats import poisson
 
-# Import ctr library components
+
 from ..graphs.attack_graph_MARA import create_mara_attack_graph
 from ..graphs.attack_graph_MARA import mara_set_default_weight
 from ..graphs.attack_graph_MARA import plot_main_graph
@@ -35,7 +35,6 @@ DEFAULT_DEFENSE_RATES = [3]
 DEFAULT_NUM_SUBGRAPHS = 100
 DEFAULT_DROP_PERCENTAGE = 0.2
 
-# Add command-line argument parsing
 def parse_args():
     parser = argparse.ArgumentParser(description='Experiment 1: Attack Graph Analysis')
     
@@ -54,7 +53,6 @@ def parse_args():
     
     return parser.parse_args()
 
-# Parse command-line arguments
 args = parse_args()
 
 # Toggle to control execution mode - now with reversed logic as requested
@@ -74,14 +72,13 @@ core_set_debug_mode(debug_mode)
 # Set image mode from args or default
 image_mode = args.image_mode if args.image_mode is not None else DEFAULT_IMAGE_MODE
 
-# Define experiment name as a variable for easy modification
+# Define experiment name
 experiment_name = "experiment_2"
 
 ######################## Set up logging configuration ########################
 ################################################################################
 def setup_logging():
     """Set up logging with files stored in a dedicated logs directory."""
-    # Create logs directory if it doesn't exist
     logs_dir = pathlib.Path.cwd()
     
     # Define log file paths

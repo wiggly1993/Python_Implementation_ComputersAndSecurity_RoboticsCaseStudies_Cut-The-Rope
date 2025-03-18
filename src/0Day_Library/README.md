@@ -1,5 +1,3 @@
-You're absolutely right to point this out. The installation instructions need to be corrected to match the actual repository structure. Here's the corrected README.md file:
-
 # CTR Python
 
 A Python library for analyzing security games on attack graphs with both complete and limited defender visibility.
@@ -8,6 +6,8 @@ A Python library for analyzing security games on attack graphs with both complet
 
 ```bash
 # Install directly from GitHub repository
+# 1. create a new venv
+# 2. run:
 pip install git+https://github.com/wiggly1993/Python_Implementation_ComputersAndSecurity_RoboticsCaseStudies_Cut-The-Rope.git#subdirectory=src/0Day_Library
 
 # Or clone and install from source
@@ -88,7 +88,7 @@ python -m ctr_python.experiments.experiment_4
 # Run with custom attack and defense rates
 python -m ctr_python.experiments.experiment_1 --attack_rates 1.5,2.0,2.5 --defense_rates 0,1,2
 
-# Include 0-day exploit analysis (limited defender visibility)
+# Include 0-day exploit analysis (creates n limited subgraphs for the defender and runs analysis on them)
 python -m ctr_python.experiments.experiment_1 --run_0day
 
 # Customize subgraph generation (only with --run_0day)
@@ -97,7 +97,7 @@ python -m ctr_python.experiments.experiment_1 --run_0day --drop_percentage 0.3 -
 # Enable debug mode for additional information
 python -m ctr_python.experiments.experiment_1 --debug
 
-# Show graph visualizations
+# Show graph visualizations for additional sanity checks
 python -m ctr_python.experiments.experiment_1 --image_mode
 ```
 

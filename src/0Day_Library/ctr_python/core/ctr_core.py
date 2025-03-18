@@ -33,9 +33,6 @@ def core_set_default_weight(value):
     DEFAULT_WEIGHT_VALUE = value
     #print(f"Default weight value set to: {DEFAULT_WEIGHT_VALUE}")
 
-
-
-# Add this near the top of ctr_core.py with other global variables
 DEBUG_MODE = False  # Global debug flag
 
 def core_set_debug_mode(enabled=False):

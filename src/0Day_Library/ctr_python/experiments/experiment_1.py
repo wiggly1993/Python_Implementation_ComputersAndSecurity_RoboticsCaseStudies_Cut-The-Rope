@@ -35,7 +35,6 @@ DEFAULT_DEFENSE_RATES = [0]
 DEFAULT_NUM_SUBGRAPHS = 100
 DEFAULT_DROP_PERCENTAGE = 0.2
 
-# Add command-line argument parsing
 def parse_args():
     parser = argparse.ArgumentParser(description='Experiment 1: Attack Graph Analysis')
     
@@ -53,6 +52,7 @@ def parse_args():
     parser.add_argument('--drop_percentage', type=float, help='Drop percentage for edge removal')
     
     return parser.parse_args()
+
 
 # Parse command-line arguments
 args = parse_args()
@@ -81,7 +81,6 @@ experiment_name = "experiment_1"
 ################################################################################
 def setup_logging():
     """Set up logging with files stored in a dedicated logs directory."""
-    # Create logs directory if it doesn't exist
     logs_dir = pathlib.Path.cwd()
     
     # Define log file paths

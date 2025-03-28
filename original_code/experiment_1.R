@@ -22,7 +22,7 @@ print(date())
 # similar to import attack_graph.MARA.R
 source(file = "attack_graph_MARA.R")
 
-attackRateList <- 2  # parameter lambda
+attackRateList <- 4  # parameter lambda
 
 # defines a new poisson function that gives you as many values 
 # as the length of the route

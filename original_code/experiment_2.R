@@ -19,7 +19,7 @@ source(file = "attack_graph_MARA.R")
 
 attackRateList <- 2  # parameter lambda
 # let the defender move slower (lamdba=1), equally fast (lambda=2) or faster (lambda=3)
-defenseRateList <- c(2) # parameter lambda_D
+defenseRateList <- c(0) # parameter lambda_D
 
 # random steps determined by a geometric distribution (randomly moving defender)
 randomSteps <- function(route, attackRate = NULL, defenseRate = NULL) {
